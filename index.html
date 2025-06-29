@@ -1,18 +1,12 @@
+[file name]: index.html
+[file content begin]
 <!DOCTYPE html>
 <html lang="id">
     <script>
         // Cek status login saat halaman dimuat
         window.addEventListener('DOMContentLoaded', function() {
-          // Dalam lingkungan pratinjau yang terisolasi (sandboxed), pengalihan URL seringkali tidak diizinkan dan menyebabkan kesalahan.
-          // Oleh karena itu, jika pengguna tidak login, kita langsung menampilkan pesan "Akses Ditolak"
-          // alih-alih mencoba mengalihkan halaman, yang akan gagal dan menghentikan eksekusi skrip.
           if (sessionStorage.getItem('isLoggedIn') !== 'true') {
-            document.body.innerHTML = '<div style="text-align: center; padding: 50px; font-family: \'Inter\', sans-serif; font-size: 1.2rem; color: #212529;"><h1>Akses Ditolak</h1><p>Silakan login untuk mengakses dasbor. Pengalihan otomatis tidak dapat dilakukan di lingkungan ini.</p></div>';
-            // Menata body agar pesan berada di tengah layar
-            document.body.style.display = 'flex';
-            document.body.style.justifyContent = 'center';
-            document.body.style.alignItems = 'center';
-            document.body.style.height = '100vh';
+            window.location.href = 'login.html';
           }
         });
       </script>
@@ -246,19 +240,6 @@
         }
         
         .header h2 { color: var(--text-primary); font-weight: 600; }
-
-        /* Style untuk teks berjalan */
-        .marquee-container {
-            padding: 15px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            box-shadow: 0 4px 15px var(--shadow-color);
-            margin-bottom: 25px;
-            font-size: 1rem;
-            font-weight: 500;
-            color: var(--text-primary);
-        }
         
         /* Info Cards */
         .info-cards {
@@ -377,6 +358,30 @@
             grid-column: 1 / -1;
         }
 
+        /* Marquee styles */
+        .marquee-container {
+            width: 100%;
+            overflow: hidden;
+            background-color: var(--primary-accent);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            padding: 10px 0;
+        }
+
+        .marquee {
+            display: inline-block;
+            white-space: nowrap;
+            animation: marquee 25s linear infinite;
+            font-size: 0.9rem;
+            color: var(--secondary-accent);
+            font-weight: 500;
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
         /* Responsive & Sidebar Toggle Logic */
         @media (max-width: 992px) {
             .sidebar { transform: translateX(-100%); }
@@ -455,12 +460,13 @@
             </div>
         </header>
         
+        <!-- Marquee Text -->
         <div class="marquee-container">
-            <marquee scrollamount="6" behavior="scroll" direction="left">
-                Selamat Datang di Sistem Informasi DPMD Kabupaten Kepulauan Tanimbar. Jaga kerahasiaan data dan informasi yang ada di dalam sistem ini.
-            </marquee>
+            <div class="marquee">
+                Selamat datang di Sistem Informasi DPMD Kabupaten Kepulauan Tanimbar - Aplikasi ini masih dalam tahap pengembangan - Untuk informasi lebih lanjut hubungi Admin Sekretariat
+            </div>
         </div>
-
+        
         <div class="info-cards">
             <div class="card info-card">
                 <div class="info-card-icon icon-blue"><i class="fas fa-users"></i></div>
@@ -576,17 +582,14 @@
             const sidebar = document.getElementById('sidebar');
             const mainContent = document.getElementById('mainContent');
 
-            // Cek elemen sebelum menambahkan event listener
-            if(hamburgerMenu) {
-                hamburgerMenu.addEventListener('click', () => {
-                    if (window.innerWidth <= 992) {
-                        sidebar.classList.toggle('active');
-                    } else {
-                        sidebar.classList.toggle('collapsed');
-                        mainContent.classList.toggle('expanded');
-                    }
-                });
-            }
+            hamburgerMenu.addEventListener('click', () => {
+                if (window.innerWidth <= 992) {
+                    sidebar.classList.toggle('active');
+                } else {
+                    sidebar.classList.toggle('collapsed');
+                    mainContent.classList.toggle('expanded');
+                }
+            });
 
             // Dropdown Menu Logic
             document.querySelectorAll('.dropdown-toggle').forEach(item => {
@@ -607,9 +610,6 @@
             const pegawaiData = JSON.parse(localStorage.getItem('pegawaiDataDPMD')) || [];
 
             function updateDashboard() {
-                // Jangan jalankan jika elemen utama tidak ada (karena diganti pesan login)
-                if (!document.getElementById('total-pegawai')) return;
-
                 if (pegawaiData.length === 0) {
                     document.getElementById('total-pegawai').textContent = 0;
                     document.getElementById('total-pns').textContent = 0;
@@ -645,7 +645,6 @@
             
             function renderSimpleTable(tbodyId, data) {
                 const tableBody = document.getElementById(tbodyId);
-                if(!tableBody) return;
                 tableBody.innerHTML = '';
                  if (Object.keys(data).length === 0) {
                     tableBody.innerHTML = `<tr><td colspan="2" style="text-align: center;">Tidak ada data.</td></tr>`;
@@ -658,7 +657,6 @@
             
             function renderUpcomingEventsTable(tbodyId, data, dateField) {
                  const tableBody = document.getElementById(tbodyId);
-                 if(!tableBody) return;
                  tableBody.innerHTML = '';
                  const now = new Date();
                  const upcoming = data
@@ -676,9 +674,7 @@
 
             let religionChartInstance;
             function updateReligionChart(labels, data) {
-                const ctxElement = document.getElementById('religionChart');
-                if(!ctxElement) return;
-                const ctx = ctxElement.getContext('2d');
+                const ctx = document.getElementById('religionChart').getContext('2d');
                 if(religionChartInstance) religionChartInstance.destroy();
                 religionChartInstance = new Chart(ctx, {
                     type: 'bar',
@@ -706,7 +702,6 @@
             
             function renderPensionTable() {
                 const tableBody = document.getElementById('pensionTableBody');
-                if(!tableBody) return;
                 const RETIREMENT_AGE = 60;
                 const now = new Date();
                 const fiveYearsFromNow = new Date(now.getFullYear() + 5, now.getMonth(), now.getDate());
@@ -727,7 +722,6 @@
             
              function renderOfficialsTable() {
                 const tableBody = document.getElementById('officialsTableBody');
-                if(!tableBody) return;
                 const officialTitles = ["Kepala Dinas", "Sekretaris", "Kepala Bidang Kelembagaan", "Kepala Bidang Pemberdayaan", "Kepala Seksi A", "Kepala Seksi B", "Kepala Seksi C"];
                 const officials = pegawaiData.filter(p => officialTitles.includes(p.jabatan))
                                            .sort((a, b) => officialTitles.indexOf(a.jabatan) - officialTitles.indexOf(b.jabatan));
@@ -751,7 +745,6 @@
 
             function renderBirthdayTable(){
                 const tableBody = document.getElementById('birthdayTableBody');
-                if(!tableBody) return;
                 const currentYear = new Date().getFullYear();
                 const birthdays = pegawaiData.map(p => ({
                     nama: p.nama,
