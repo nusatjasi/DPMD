@@ -1,19 +1,24 @@
-[file name]: index.html
-[file content begin]
 <!DOCTYPE html>
 <html lang="id">
-    <script>
-        // Cek status login saat halaman dimuat
-        window.addEventListener('DOMContentLoaded', function() {
-          if (sessionStorage.getItem('isLoggedIn') !== 'true') {
-            window.location.href = 'login.html';
-          }
-        });
-      </script>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - DPMD Kab. Kepulauan Tanimbar</title>
+
+    <!-- ======================= PERUBAHAN UTAMA ADA DI SINI ======================= -->
+    <script>
+        // Skrip ini berjalan secara langsung saat <head> dimuat,
+        // sebelum konten <body> sempat ditampilkan ke pengguna.
+        // Ini adalah cara yang benar untuk melindungi halaman.
+        if (sessionStorage.getItem('isLoggedIn') !== 'true') {
+            // Jika status login tidak ditemukan, paksa pengguna kembali ke halaman login.
+            // window.location.replace() digunakan agar pengguna tidak bisa menekan tombol "Back"
+            // browser untuk kembali ke halaman dashboard ini setelah dialihkan.
+            window.location.replace('login.html');
+        }
+    </script>
+    <!-- ========================================================================= -->
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -58,6 +63,8 @@
             display: flex;
             min-height: 100vh;
             overflow-x: hidden;
+            /* Tambahkan ini untuk mencegah 'flash' konten sebelum redirect */
+            visibility: hidden;
         }
 
         /* --- Sidebar --- */
@@ -137,7 +144,6 @@
             transition: color 0.3s;
         }
         
-        /* Sidebar Icon Colors */
         .icon-color-1 { color: var(--icon-color-1); }
         .icon-color-2 { color: var(--icon-color-2); }
         .icon-color-3 { color: var(--icon-color-3); }
@@ -241,7 +247,6 @@
         
         .header h2 { color: var(--text-primary); font-weight: 600; }
         
-        /* Info Cards */
         .info-cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -358,7 +363,6 @@
             grid-column: 1 / -1;
         }
 
-        /* Marquee styles */
         .marquee-container {
             width: 100%;
             overflow: hidden;
@@ -382,7 +386,6 @@
             100% { transform: translateX(-100%); }
         }
 
-        /* Responsive & Sidebar Toggle Logic */
         @media (max-width: 992px) {
             .sidebar { transform: translateX(-100%); }
             .sidebar.active { transform: translateX(0); }
@@ -446,7 +449,7 @@
             </ul>
         </div>
         <div class="logout-btn">
-            <a href="login.html"><i class="fas fa-sign-out-alt"></i> <span>Keluar</span></a>
+            <a href="#"><i class="fas fa-sign-out-alt"></i> <span>Keluar</span></a>
         </div>
     </div>
     
@@ -460,7 +463,6 @@
             </div>
         </header>
         
-        <!-- Marquee Text -->
         <div class="marquee-container">
             <div class="marquee">
                 Selamat datang di Sistem Informasi DPMD Kabupaten Kepulauan Tanimbar - Aplikasi ini masih dalam tahap pengembangan - Untuk informasi lebih lanjut hubungi Admin Sekretariat
@@ -577,6 +579,11 @@
     </div>
     
     <script>
+        // Tampilkan halaman setelah dipastikan login
+        if (sessionStorage.getItem('isLoggedIn') === 'true') {
+            document.body.style.visibility = 'visible';
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const hamburgerMenu = document.getElementById('hamburgerMenu');
             const sidebar = document.getElementById('sidebar');
@@ -591,7 +598,6 @@
                 }
             });
 
-            // Dropdown Menu Logic
             document.querySelectorAll('.dropdown-toggle').forEach(item => {
                 item.addEventListener('click', event => {
                     event.preventDefault();
@@ -606,7 +612,19 @@
                     }
                 });
             });
+            
+            // --- LOGIKA LOGOUT DIPINDAHKAN KE SINI ---
+            const logoutButton = document.querySelector('.logout-btn a');
+            logoutButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                // Hapus status login dari session
+                sessionStorage.removeItem('isLoggedIn');
+                // Alihkan ke halaman login
+                window.location.replace('login.html');
+            });
 
+
+            // --- Logika Dashboard ---
             const pegawaiData = JSON.parse(localStorage.getItem('pegawaiDataDPMD')) || [];
 
             function updateDashboard() {
