@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="id">
+    <script>
+        // Cek status login saat halaman dimuat
+        window.addEventListener('DOMContentLoaded', function() {
+          if (sessionStorage.getItem('isLoggedIn') !== 'true') {
+            window.location.href = 'login.html';
+          }
+        });
+      </script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar Hadir Mingguan - DPMD Kab. Kepulauan Tanimbar</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #f4f7fc;
+            --bg-secondary: #ffffff;
+            --primary-accent: #e3f2fd;
+            --secondary-accent: #007bff;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border-color: #dee2e6;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --hadir-color: #28a745;
+            --absen-color: #dc3545;
+            
+            --icon-color-1: #007bff;
+            --icon-color-2: #28a745;
+            --icon-color-3: #ffc107;
+            --icon-color-4: #dc3545;
+            --icon-color-5: #17a2b8;
+            --icon-color-6: #6f42c1;
+            --icon-color-7: #fd7e14;
+            --icon-color-8: #20c997;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            transition: width 0.3s ease, transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 0 15px var(--shadow-color);
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+        
+        .sidebar.collapsed .sidebar-header h3,
+        .sidebar.collapsed .sidebar-header p,
+        .sidebar.collapsed .sidebar-menu a span,
+        .sidebar.collapsed .logout-btn span,
+        .sidebar.collapsed .dropdown-icon {
+            display: none;
+        }
+
+        .sidebar.collapsed .sidebar-menu a,
+        .sidebar.collapsed .logout-btn a {
+            justify-content: center;
+        }
+
+        .sidebar.collapsed .sidebar-menu a i.menu-icon {
+            margin-right: 0;
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            transition: padding 0.3s ease;
+        }
+        
+        .sidebar.collapsed .sidebar-header {
+            padding: 25px 10px;
+        }
+
+
+        .sidebar-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--secondary-accent);
+            font-weight: 700;
+        }
+
+        .sidebar-header p {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-top: 5px;
+            color: var(--text-secondary);
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+            height: calc(100% - 150px);
+            overflow-y: auto;
+        }
+
+        .sidebar-menu ul { list-style: none; }
+        
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            position: relative;
+            margin: 5px 15px;
+            border-radius: 8px;
+            white-space: nowrap;
+        }
+
+        .sidebar-menu a:hover, .sidebar-menu a.active {
+            background-color: var(--secondary-accent);
+            color: #ffffff;
+            transform: translateX(5px);
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+        }
+
+        .sidebar.collapsed .sidebar-menu a:hover, .sidebar.collapsed .sidebar-menu a.active {
+             transform: translateX(0);
+        }
+        
+        .sidebar-menu a:hover i, .sidebar-menu a.active i {
+            color: #ffffff !important;
+        }
+
+        .sidebar-menu a i.menu-icon {
+            margin-right: 15px;
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+            transition: color 0.3s;
+        }
+
+        .icon-color-1 { color: var(--icon-color-1); }
+        .icon-color-2 { color: var(--icon-color-2); }
+        .icon-color-3 { color: var(--icon-color-3); }
+        .icon-color-4 { color: var(--icon-color-4); }
+        .icon-color-5 { color: var(--icon-color-5); }
+        .icon-color-6 { color: var(--icon-color-6); }
+        .icon-color-7 { color: var(--icon-color-7); }
+        .icon-color-8 { color: var(--icon-color-8); }
+
+        .dropdown-toggle {
+            justify-content: space-between;
+        }
+
+        .dropdown-icon {
+            transition: transform 0.3s ease;
+        }
+        
+        .menu-item-has-children.open > .dropdown-toggle .dropdown-icon {
+            transform: rotate(180deg);
+        }
+        
+        .submenu {
+            list-style: none;
+            padding-left: 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out;
+        }
+        
+        .menu-item-has-children.open > .submenu {
+            max-height: 500px;
+            transition: max-height 0.5s ease-in;
+        }
+
+        .submenu a {
+            padding: 10px 15px 10px 25px;
+            font-size: 0.9rem;
+        }
+
+        .logout-btn {
+            position: absolute;
+            bottom: 20px;
+            left: 15px;
+            right: 15px;
+        }
+
+        .logout-btn a {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--primary-accent);
+            color: var(--secondary-accent);
+            text-align: center;
+            padding: 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn a:hover {
+            background-color: var(--absen-color);
+            color: #ffffff;
+            box-shadow: 0 4px 10px rgba(229, 57, 53, 0.4);
+        }
+        
+        .main-content {
+            margin-left: 260px;
+            width: calc(100% - 260px);
+            padding: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .main-content.expanded {
+            margin-left: 80px;
+            width: calc(100% - 80px);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px var(--shadow-color);
+            margin-bottom: 25px;
+        }
+        
+        .header-left { display: flex; align-items: center; gap: 20px; }
+        .hamburger-menu { cursor: pointer; padding: 5px; }
+        .hamburger-menu span {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background-color: var(--text-primary);
+            margin: 5px 0;
+            transition: all 0.3s;
+            border-radius: 3px;
+        }
+        
+        .header h2 { color: var(--text-primary); font-weight: 600; }
+        
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px var(--shadow-color);
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--secondary-accent);
+            color: #ffffff;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .nav-btn {
+            background-color: #fff;
+            color: var(--secondary-accent);
+            border: 1px solid var(--secondary-accent);
+        }
+
+        .attendance-nav {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .summary-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .summary-box {
+            flex: 1;
+            background-color: var(--primary-accent);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 5px solid;
+            min-width: 150px;
+        }
+        
+        .summary-box.total { border-color: var(--icon-color-1); }
+        .summary-box.hadir { border-color: var(--hadir-color); }
+        .summary-box.absen { border-color: var(--absen-color); }
+
+        .summary-box h4 {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .summary-box p {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .table-responsive { overflow-x: auto; }
+        .attendance-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+        .attendance-table th, .attendance-table td {
+            border: 1px solid #000;
+            padding: 8px 5px;
+            min-width: 60px;
+        }
+        .attendance-table th {
+            background-color: var(--primary-accent);
+            white-space: nowrap;
+        }
+        .attendance-table .pegawai-info { text-align: left; padding-left: 8px; white-space: nowrap; }
+        
+        .attendance-cell {
+            cursor: pointer;
+            font-size: 1.4em;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        .attendance-cell.hadir {
+            color: var(--hadir-color);
+        }
+        .attendance-cell.absen {
+            color: var(--absen-color);
+        }
+        
+        .keterangan-select {
+            width: 100%;
+            padding: 4px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: #fff;
+        }
+
+        #printCaption {
+            display: none;
+            caption-side: top;
+            text-align: center;
+            padding: 10px 0;
+            color: #000;
+        }
+        .print-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            border-bottom: 3px solid black;
+            padding-bottom: 10px;
+            gap: 25px; /* Adjusted gap */
+        }
+        .print-header .logo { 
+            width: 70px; 
+            height: auto; 
+            flex-shrink: 0;
+        }
+        .print-header .header-text { 
+            text-align: center; 
+            font-family: 'Times New Roman', Times, serif; 
+            flex-grow: 1; 
+        }
+        .print-header h3, .print-header h2, .print-header p { 
+            margin: 0; 
+            line-height: 1.4; 
+        }
+        .print-header h3 { font-size: 16px; font-weight: bold; }
+        .print-header h2 { font-size: 20px; font-weight: bold; }
+        .print-header p { font-size: 12px; }
+        .print-title h4 { font-family: 'Times New Roman', Times, serif; font-size: 14px; font-weight: bold; margin: 10px 0 2px 0;}
+        .print-title p { margin: 3px 0 15px 0; font-family: 'Times New Roman', Times, serif; font-size: 12px; }
+
+        .signature-section { display: none; margin-top: 40px; page-break-inside: avoid; width: 100%; font-size: 12px; }
+        .signature-block { float: right; text-align: center; width: 350px; margin-left: auto; margin-right: 0px;}
+        .signature-block p { margin: 0; line-height: 1.5;}
+        .signature-block .name { margin-top: 50px; font-weight: bold; text-decoration: underline; }
+        
+        .keterangan-print { display: none; }
+
+        @media screen and (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+            .main-content.expanded {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+        
+        @media print {
+            body { background: white; color: black; font-family: 'Times New Roman', Times, serif; }
+            .sidebar, .header, .card:not(#printableArea) { display: none; }
+            .main-content { margin-left: 0; width: 100%; padding: 0;}
+            #printableArea { box-shadow: none; border: none; padding: 0; }
+            
+            #printCaption { display: table-caption; }
+            .keterangan-select { display: none; }
+            .keterangan-print { display: block; text-align: left; padding-left: 5px;}
+
+            .signature-section { display: block; }
+            .attendance-cell::before {
+                font-family: 'Times New Roman', Times, serif;
+            }
+            @page {
+                size: A3 landscape;
+                margin: 15mm;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3>DPMD</h3>
+            <p>Kab. Kepulauan Tanimbar</p>
+        </div>
+        <div class="sidebar-menu">
+            <ul>
+                <li><a href="index.html"><i class="fas fa-home menu-icon icon-color-1"></i> <span>Beranda</span></a></li>
+                <li><a href="#"><i class="fas fa-users menu-icon icon-color-2"></i> <span>Data Pegawai</span></a></li>
+                <li class="menu-item-has-children">
+                    <a href="#" class="dropdown-toggle">
+                        <div><i class="fas fa-envelope-open-text menu-icon icon-color-3"></i> <span>Surat</span></div>
+                        <i class="fas fa-chevron-down dropdown-icon"></i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="#">Surat Masuk</a></li>
+                        <li><a href="#">Surat Keluar</a></li>
+                        <li><a href="#">Rekapan Data Surat</a></li>
+                        <li><a href="#">Contoh Surat</a></li>
+                    </ul>
+                </li>
+                <li><a href="bezeting.html"><i class="fas fa-file-invoice menu-icon icon-color-4"></i> <span>Bezeting Pegawai</span></a></li>
+                <li><a href="#"><i class="fas fa-village menu-icon icon-color-5"></i> <span>Data Desa</span></a></li>
+                <li><a href="#"><i class="fas fa-info-circle menu-icon icon-color-6"></i> <span>Informasi</span></a></li>
+                <li><a href="data_master.html"><i class="fas fa-database menu-icon icon-color-7"></i> <span>Data Master</span></a></li>
+                <li class="menu-item-has-children active">
+                    <a href="#" class="dropdown-toggle">
+                         <div><i class="fas fa-clipboard-user menu-icon icon-color-8"></i> <span>Daftar Hadir</span></div>
+                         <i class="fas fa-chevron-down dropdown-icon"></i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="daftarhadir.html">Apel Senin</a></li>
+                        <li><a href="daftar_hadir_mingguan.html" class="active">Daftar Hadir Mingguan</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <div class="logout-btn">
+            <a href="login.html"><i class="fas fa-sign-out-alt"></i> <span>Keluar</span></a>
+        </div>
+    </div>
+    
+    <div class="main-content" id="mainContent">
+        <header class="header">
+             <div class="header-left">
+                <div class="hamburger-menu" id="hamburgerMenu">
+                    <span></span><span></span><span></span>
+                </div>
+                <h2>Daftar Hadir Mingguan</h2>
+            </div>
+            <button class="btn" id="printBtn"><i class="fas fa-print"></i> Cetak Daftar Hadir</button>
+        </header>
+        
+        <div class="card">
+            <div class="attendance-nav">
+                <div>
+                    <label for="monthSelect">Bulan:</label>
+                    <select id="monthSelect" class="btn nav-btn"></select>
+                </div>
+                <div>
+                    <label for="weekSelect">Minggu:</label>
+                    <select id="weekSelect" class="btn nav-btn"></select>
+                </div>
+                 <div>
+                    <label for="dateDisplay">Tanggal:</label>
+                    <input type="text" id="dateDisplay" class="btn nav-btn" disabled style="width: 250px;">
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+             <div class="summary-container">
+                <div class="summary-box total">
+                    <h4><i class="fas fa-users"></i> Total Pegawai</h4>
+                    <p id="totalPegawaiCount">0</p>
+                </div>
+                <div class="summary-box hadir">
+                    <h4><i class="fas fa-user-check"></i> Hadir</h4>
+                    <p id="hadirCount">0</p>
+                </div>
+                <div class="summary-box absen">
+                    <h4><i class="fas fa-user-times"></i> Tidak Hadir</h4>
+                    <p id="absenCount">0</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" id="printableArea">
+            <div class="table-responsive">
+                <table class="attendance-table" id="attendanceTable">
+                    <caption id="printCaption">
+                         <div class="print-header">
+                            <img src="logo.png" alt="Logo KKT" class="logo" onerror="this.src='https://placehold.co/80x80?text=Logo'">
+                            <div class="header-text">
+                                <h3>PEMERINTAH KABUPATEN KEPULAUAN TANIMBAR</h3>
+                                <h2>DINAS PEMBERDAYAAN MASYARAKAT DAN DESA</h2>
+                                <p>Jln. Ir. Soekarno, Kompleks Kantor Bupati Kepulauan Tanimbar, Kode Pos 97664</p>
+                                <p>S A U M L A K I</p>
+                            </div>
+                        </div>
+                        <div class="print-title">
+                            <h4>DAFTAR HADIR MINGGUAN PEGAWAI</h4>
+                            <p id="headerDateRange"></p>
+                        </div>
+                    </caption>
+                    <thead>
+                        <tr>
+                            <th rowspan="2">No</th>
+                            <th rowspan="2">Nama / NIP</th>
+                            <th rowspan="2">L / P</th>
+                            <th rowspan="2">Pangkat. Gol /Ruang</th>
+                            <th rowspan="2">Jabatan</th>
+                            <th colspan="2" id="day-1">Senin</th>
+                            <th colspan="2" id="day-2">Selasa</th>
+                            <th colspan="2" id="day-3">Rabu</th>
+                            <th colspan="2" id="day-4">Kamis</th>
+                            <th colspan="2" id="day-5">Jumat</th>
+                            <th rowspan="2" width="150px">Ket</th>
+                        </tr>
+                        <tr>
+                            <th>Pagi</th><th>Sore</th>
+                            <th>Pagi</th><th>Sore</th>
+                            <th>Pagi</th><th>Sore</th>
+                            <th>Pagi</th><th>Sore</th>
+                            <th>Pagi</th><th>Sore</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendanceTableBody"></tbody>
+                </table>
+            </div>
+             <div class="signature-section">
+                 <div class="signature-block">
+                    <p>Mengetahui,</p>
+                    <p>KEPALA DINAS PEMBERDAYAAN MASYARAKAT DAN DESA</p>
+                    <p>KABUPATEN KEPULAUAN TANIMBAR</p>
+                    <br><br><br>
+                    <p class="name" id="kadisName"></p>
+                    <p id="kadisPangkat"></p>
+                    <p>NIP. <span id="kadisNip"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sidebar Logic
+            const hamburgerMenu = document.getElementById('hamburgerMenu');
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            if (hamburgerMenu) {
+                hamburgerMenu.addEventListener('click', () => {
+                    if (window.innerWidth <= 992) {
+                        sidebar.classList.toggle('active');
+                    } else {
+                        sidebar.classList.toggle('collapsed');
+                        mainContent.classList.toggle('expanded');
+                    }
+                });
+            }
+            document.querySelectorAll('.dropdown-toggle').forEach(item => {
+                const parent = item.parentElement;
+                if(parent.classList.contains('active')) {
+                     parent.classList.add('open');
+                }
+                item.addEventListener('click', event => {
+                    event.preventDefault();
+                    if(sidebar.classList.contains('collapsed')) return;
+                    if(parent.classList.contains('open')){
+                        parent.classList.remove('open');
+                    } else {
+                        document.querySelectorAll('.menu-item-has-children.open').forEach(openItem => {
+                            openItem.classList.remove('open');
+                        });
+                        parent.classList.add('open');
+                    }
+                });
+            });
+
+            // --- Application Logic ---
+            const pegawaiData = JSON.parse(localStorage.getItem('pegawaiDataDPMD')) || [];
+            const monthSelect = document.getElementById('monthSelect');
+            const weekSelect = document.getElementById('weekSelect');
+            const dateDisplay = document.getElementById('dateDisplay');
+            const tableBody = document.getElementById('attendanceTableBody');
+            
+            const totalPegawaiCountEl = document.getElementById('totalPegawaiCount');
+            const hadirCountEl = document.getElementById('hadirCount');
+            const absenCountEl = document.getElementById('absenCount');
+
+            const MONTHS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+            const currentDate = new Date();
+            const currentYear = currentDate.getFullYear();
+            let weeklyAttendanceData = {};
+
+            function populateMonths() {
+                MONTHS.forEach((month, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = month;
+                    if (index === currentDate.getMonth()) {
+                        option.selected = true;
+                    }
+                    monthSelect.appendChild(option);
+                });
+            }
+
+            function getMondays(year, month) {
+                let mondays = [];
+                let date = new Date(year, month, 1);
+                while (date.getDay() !== 1) {
+                    date.setDate(date.getDate() + 1);
+                     if(date.getMonth() !== month) return mondays;
+                }
+                while (date.getMonth() === month) {
+                    mondays.push(new Date(date));
+                    date.setDate(date.getDate() + 7);
+                }
+                return mondays;
+            }
+
+            function populateWeeks() {
+                const selectedMonth = parseInt(monthSelect.value);
+                const mondays = getMondays(currentYear, selectedMonth);
+                weekSelect.innerHTML = '';
+                
+                if(mondays.length === 0){
+                    const option = document.createElement('option');
+                    option.textContent = "Tidak Ada Minggu Valid";
+                    weekSelect.appendChild(option);
+                    updateTable();
+                    return;
+                }
+
+                mondays.forEach((monday, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    const friday = new Date(monday);
+                    friday.setDate(monday.getDate() + 4);
+                    option.textContent = `Minggu ke-${index + 1} (${monday.toLocaleDateString('id-ID', { day: '2-digit' })} - ${friday.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })})`;
+                    weekSelect.appendChild(option);
+                });
+                
+                updateTable();
+            }
+            
+            function getWeekDataKey() {
+                return `weekly_attendance_${currentYear}_${monthSelect.value}_${weekSelect.value}`;
+            }
+
+            function loadAttendanceData() {
+                const key = getWeekDataKey();
+                weeklyAttendanceData = JSON.parse(localStorage.getItem(key)) || {};
+            }
+
+            function saveAttendanceData() {
+                const key = getWeekDataKey();
+                localStorage.setItem(key, JSON.stringify(weeklyAttendanceData));
+            }
+            
+            function updateTable() {
+                loadAttendanceData();
+                const selectedMonth = parseInt(monthSelect.value);
+                const selectedWeek = parseInt(weekSelect.value);
+                
+                if(isNaN(selectedMonth) || isNaN(selectedWeek)) {
+                    tableBody.innerHTML = `<tr><td colspan="16" style="text-align:center;">Silakan pilih bulan dan minggu yang valid.</td></tr>`;
+                    dateDisplay.value = "";
+                    document.getElementById('headerDateRange').textContent = "";
+                    updateSummary();
+                    return;
+                }
+
+                const mondays = getMondays(currentYear, selectedMonth);
+                const firstDayOfWeek = mondays[selectedWeek];
+
+                if (!firstDayOfWeek) {
+                    tableBody.innerHTML = `<tr><td colspan="16" style="text-align:center;">Tidak ada data untuk minggu ini.</td></tr>`;
+                    dateDisplay.value = "";
+                    document.getElementById('headerDateRange').textContent = `Minggu ke-${selectedWeek + 1}`;
+                    renderHeader([]);
+                    updateSummary();
+                    return;
+                }
+
+                const weekDates = [];
+                for (let i = 0; i < 5; i++) {
+                    const date = new Date(firstDayOfWeek);
+                    date.setDate(firstDayOfWeek.getDate() + i);
+                    weekDates.push(date);
+                }
+                
+                renderHeader(weekDates);
+                renderTableBody(weekDates);
+                
+                const firstDateStr = weekDates[0].toLocaleDateString('id-ID', {day: '2-digit', month: 'long'});
+                const lastDateStr = weekDates[4].toLocaleDateString('id-ID', {day: '2-digit', month: 'long', year: 'numeric'});
+                dateDisplay.value = `${firstDateStr} - ${lastDateStr}`;
+                document.getElementById('headerDateRange').textContent = `Minggu ke-${selectedWeek + 1}, ${firstDateStr} - ${lastDateStr}`;
+                updateSummary();
+            }
+            
+            function updateSummary() {
+                totalPegawaiCountEl.textContent = pegawaiData.length;
+                let hadirCount = 0;
+                let absenCount = 0;
+                
+                Object.values(weeklyAttendanceData).forEach(pegawai => {
+                    Object.values(pegawai).forEach(dayData => {
+                        if (typeof dayData === 'object' && dayData !== null) {
+                            if (dayData.pagi === 'hadir') hadirCount++;
+                            else if (dayData.pagi === 'absen') absenCount++;
+                            
+                            if (dayData.sore === 'hadir') hadirCount++;
+                            else if (dayData.sore === 'absen') absenCount++;
+                        }
+                    });
+                });
+                hadirCountEl.textContent = hadirCount;
+                absenCountEl.textContent = absenCount;
+            }
+
+            function renderHeader(dates) {
+                 const days = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
+                 const options = { day: '2-digit', month: '2-digit' };
+                 for (let i = 0; i < 5; i++) {
+                    const header = document.getElementById(`day-${i + 1}`);
+                    if (dates[i]) {
+                        header.innerHTML = `${days[i]},<br>${dates[i].toLocaleDateString('id-ID', options)}`;
+                    } else {
+                        header.innerHTML = days[i];
+                    }
+                }
+            }
+
+            function formatDateKey(date) {
+                let d = new Date(date),
+                    month = '' + (d.getMonth() + 1),
+                    day = '' + d.getDate(),
+                    year = d.getFullYear();
+                if (month.length < 2) month = '0' + month;
+                if (day.length < 2) day = '0' + day;
+                return [year, month, day].join('-');
+            }
+
+            function renderTableBody(weekDates) {
+                if (pegawaiData.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="16" style="text-align:center;">Tidak ada data pegawai.</td></tr>`;
+                    updateSummary();
+                    return;
+                }
+
+                tableBody.innerHTML = '';
+                pegawaiData.forEach((pegawai, index) => {
+                    const row = tableBody.insertRow();
+                    let cellsHTML = `
+                        <td>${index + 1}</td>
+                        <td class="pegawai-info">${pegawai.nama}<br>${pegawai.nip}</td>
+                        <td>${pegawai.jenis_kelamin}</td>
+                        <td>${pegawai.pangkat}<br>${pegawai.gol_ruang}</td>
+                        <td>${pegawai.jabatan}</td>
+                    `;
+                    
+                    weekDates.forEach(date => {
+                        const dateKey = formatDateKey(date);
+                        const pagiStatus = weeklyAttendanceData[pegawai.nip]?.[dateKey]?.pagi || '';
+                        const soreStatus = weeklyAttendanceData[pegawai.nip]?.[dateKey]?.sore || '';
+                        const getIcon = (status) => status === 'hadir' ? '✓' : (status === 'absen' ? '✗' : '');
+                        cellsHTML += `
+                            <td class="attendance-cell ${pagiStatus}" data-nip="${pegawai.nip}" data-date="${dateKey}" data-session="pagi">${getIcon(pagiStatus)}</td>
+                            <td class="attendance-cell ${soreStatus}" data-nip="${pegawai.nip}" data-date="${dateKey}" data-session="sore">${getIcon(soreStatus)}</td>
+                        `;
+                    });
+                    
+                    const keteranganValue = weeklyAttendanceData[pegawai.nip]?.keterangan || '';
+                    cellsHTML += `
+                        <td>
+                            <select class="keterangan-select" data-nip="${pegawai.nip}">
+                                <option value="" ${keteranganValue === '' ? 'selected' : ''}></option>
+                                <option value="Izin" ${keteranganValue === 'Izin' ? 'selected' : ''}>Izin</option>
+                                <option value="Sakit" ${keteranganValue === 'Sakit' ? 'selected' : ''}>Sakit</option>
+                                <option value="Perjalanan Dinas" ${keteranganValue === 'Perjalanan Dinas' ? 'selected' : ''}>Perjalanan Dinas</option>
+                                <option value="Tanpa Keterangan" ${keteranganValue === 'Tanpa Keterangan' ? 'selected' : ''}>Tanpa Keterangan</option>
+                            </select>
+                            <span class="keterangan-print">${keteranganValue}</span>
+                        </td>
+                    `;
+                    row.innerHTML = cellsHTML;
+                });
+                
+                const kepalaDinas = pegawaiData.find(p => p.jabatan === "Kepala Dinas");
+                if(kepalaDinas) {
+                    document.getElementById('kadisName').textContent = kepalaDinas.nama;
+                    document.getElementById('kadisPangkat').textContent = kepalaDinas.pangkat;
+                    document.getElementById('kadisNip').textContent = kepalaDinas.nip;
+                }
+            }
+            
+            tableBody.addEventListener('click', (e) => {
+                const cell = e.target;
+                if (!cell.classList.contains('attendance-cell')) return;
+                const { nip, date, session } = cell.dataset;
+                let currentStatus = cell.classList.contains('hadir') ? 'hadir' : (cell.classList.contains('absen') ? 'absen' : '');
+                let nextStatus = currentStatus === '' ? 'hadir' : (currentStatus === 'hadir' ? 'absen' : '');
+                let nextIcon = nextStatus === 'hadir' ? '✓' : (nextStatus === 'absen' ? '✗' : '');
+
+                cell.classList.remove('hadir', 'absen');
+                if (nextStatus) cell.classList.add(nextStatus);
+                cell.textContent = nextIcon;
+
+                if (!weeklyAttendanceData[nip]) weeklyAttendanceData[nip] = {};
+                if (!weeklyAttendanceData[nip][date]) weeklyAttendanceData[nip][date] = {};
+                weeklyAttendanceData[nip][date][session] = nextStatus;
+
+                saveAttendanceData();
+                updateSummary();
+            });
+
+            tableBody.addEventListener('change', (e) => {
+                const select = e.target;
+                if(!select.classList.contains('keterangan-select')) return;
+                const { nip } = select.dataset;
+                const value = select.value;
+
+                if (!weeklyAttendanceData[nip]) weeklyAttendanceData[nip] = {};
+                weeklyAttendanceData[nip].keterangan = value;
+                
+                // Update print-only span
+                const printSpan = select.nextElementSibling;
+                if (printSpan && printSpan.classList.contains('keterangan-print')) {
+                    printSpan.textContent = value;
+                }
+
+                saveAttendanceData();
+            });
+            
+            monthSelect.addEventListener('change', populateWeeks);
+            weekSelect.addEventListener('change', updateTable);
+            
+            document.getElementById('printBtn').addEventListener('click', () => {
+                window.print();
+            });
+            
+            // Initial Load
+            populateMonths();
+            populateWeeks();
+        });
+    </script>
+</body>
+</html>
