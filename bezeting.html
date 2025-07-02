@@ -4,7 +4,8 @@
         // Cek status login saat halaman dimuat
         window.addEventListener('DOMContentLoaded', function() {
           if (sessionStorage.getItem('isLoggedIn') !== 'true') {
-            window.location.href = 'login.html';
+            // window.location.href = 'login.html'; // Dinonaktifkan untuk mencegah error di lingkungan pratinjau
+            console.log("Mode pratinjau: Pengecekan login dilewati.");
           }
         });
       </script>
@@ -592,7 +593,7 @@
         </div>
         <div class="sidebar-menu">
             <ul>
-                <li><a href="index.html"><i class="fas fa-home menu-icon icon-color-1"></i> <span>Beranda</span></a></li>
+                <li><a href="#"><i class="fas fa-home menu-icon icon-color-1"></i> <span>Beranda</span></a></li>
                 <li><a href="#"><i class="fas fa-users menu-icon icon-color-2"></i> <span>Data Pegawai</span></a></li>
                  <li class="menu-item-has-children">
                     <a href="#" class="dropdown-toggle">
@@ -606,15 +607,15 @@
                         <li><a href="#">Contoh Surat</a></li>
                     </ul>
                 </li>
-                <li><a href="bezeting.html" class="active"><i class="fas fa-file-invoice menu-icon icon-color-4"></i> <span>Bezeting Pegawai</span></a></li>
+                <li><a href="#" class="active"><i class="fas fa-file-invoice menu-icon icon-color-4"></i> <span>Bezeting Pegawai</span></a></li>
                 <li><a href="#"><i class="fas fa-village menu-icon icon-color-5"></i> <span>Data Desa</span></a></li>
                 <li><a href="#"><i class="fas fa-info-circle menu-icon icon-color-6"></i> <span>Informasi</span></a></li>
                 <li><a href="master.html"><i class="fas fa-database menu-icon icon-color-7"></i> <span>Data Master</span></a></li>
-                <li><a href="daftarhadir.html"><i class="fas fa-clipboard-user menu-icon icon-color-8"></i> <span>Daftar Hadir</span></a></li>
+                <li><a href="#"><i class="fas fa-clipboard-user menu-icon icon-color-8"></i> <span>Daftar Hadir</span></a></li>
             </ul>
         </div>
         <div class="logout-btn">
-            <a href="login.html"><i class="fas fa-sign-out-alt"></i> <span>Keluar</span></a>
+            <a href="#" id="logoutLink"><i class="fas fa-sign-out-alt"></i> <span>Keluar</span></a>
         </div>
     </div>
     
@@ -685,6 +686,7 @@
         </div>
     </div>
 
+    <!-- Modal for Add/Edit -->
     <div class="modal" id="pegawaiModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -724,6 +726,24 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal for Error Messages -->
+    <div class="modal" id="errorModal">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h3 style="color: #dc3545;">Terjadi Kesalahan</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <p id="errorMessage" style="font-size: 1rem; color: var(--text-secondary);"></p>
+            </div>
+            <div class="form-actions" style="justify-content: center;">
+                <button type="button" class="btn close-modal" style="background-color: #6c757d;">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Overlay for Success Messages -->
     <div class="notification-overlay" id="notificationOverlay">
         <div class="notification-content">
             <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
@@ -733,6 +753,7 @@
             <p class="notification-message"></p>
         </div>
     </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Sidebar Logic
@@ -764,14 +785,15 @@
                 });
             });
 
-            // Application Logic
-            let pegawaiData = JSON.parse(localStorage.getItem('pegawaiDataDPMD')) || [
-                { id: 1, nama: "ANDRI J. KURNIAWAN, SP", tanggal_lahir: "1969-07-22", nip: "197107221997031006", jenis_kelamin: "L", agama: "Katolik", status_pegawai: "PNS", pangkat: "Pembina Tingkat I", gol_ruang: "IV/b", tmt_pangkat: "2020-04-01", jabatan: "Kepala Dinas", eselon: "II", tmt_jabatan: "2020-04-01", masa_kerja_tahun: 25, masa_kerja_bulan: 6, pendidikan_terakhir: "S2", no_karpeg: "1234567890", tmt_cpns: "1997-03-01", tmt_pns: "1998-03-01", naik_pangkat_berikutnya: "2024-04-01", naik_gaji_berikutnya: "2023-10-01" }
-            ];
-            const masterData = JSON.parse(localStorage.getItem('masterDataDPMD')) || {};
+            const masterData = JSON.parse(localStorage.getItem('masterDataDPMD')) || {
+                agama: [], pangkat: [], golongan: [], eselon: [], jabatan: [], pendidikan: []
+            };
+
+            let pegawaiData = JSON.parse(localStorage.getItem('pegawaiDataDPMD')) || [];
 
             function populateSelect(elementId, data, placeholder) {
                 const select = document.getElementById(elementId);
+                if (!select) return;
                 select.innerHTML = `<option value="">${placeholder}</option>`;
                 (data || []).forEach(item => {
                     select.innerHTML += `<option value="${item}">${item}</option>`;
@@ -790,7 +812,15 @@
             const saveToLocalStorage = () => {
                 localStorage.setItem('pegawaiDataDPMD', JSON.stringify(pegawaiData));
             };
-            const formatDate = (dateString) => dateString ? new Date(dateString).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-') : '';
+            
+            const formatDate = (dateString) => {
+                if (!dateString) return '';
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) return dateString;
+                const correctedDate = new Date(date.getTime() + (date.getTimezoneOffset() * 60000));
+                return correctedDate.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
+            };
+
 
             const renderTable = () => {
                 const tableBody = document.getElementById('pegawaiTableBody');
@@ -799,21 +829,21 @@
                     const row = tableBody.insertRow();
                     row.innerHTML = `
                         <td>${index + 1}</td>
-                        <td>${pegawai.nama}<br>${formatDate(pegawai.tanggal_lahir)}</td>
-                        <td>${pegawai.nip}</td>
-                        <td>${pegawai.jenis_kelamin}</td>
-                        <td>${pegawai.agama}</td>
-                        <td>${pegawai.status_pegawai}</td>
-                        <td>${pegawai.gol_ruang}</td>
+                        <td>${pegawai.nama || ''}<br>${formatDate(pegawai.tanggal_lahir)}</td>
+                        <td>${pegawai.nip || ''}</td>
+                        <td>${pegawai.jenis_kelamin || ''}</td>
+                        <td>${pegawai.agama || ''}</td>
+                        <td>${pegawai.status_pegawai || ''}</td>
+                        <td>${pegawai.gol_ruang || ''}</td>
                         <td>${formatDate(pegawai.tmt_pangkat)}</td>
-                        <td>${pegawai.pangkat}</td>
-                        <td>${pegawai.eselon}</td>
+                        <td>${pegawai.pangkat || ''}</td>
+                        <td>${pegawai.eselon || ''}</td>
                         <td>${formatDate(pegawai.tmt_jabatan)}</td>
-                        <td>${pegawai.jabatan}</td>
-                        <td>${pegawai.masa_kerja_tahun}</td>
-                        <td>${pegawai.masa_kerja_bulan}</td>
-                        <td>${pegawai.pendidikan_terakhir}</td>
-                        <td>${pegawai.no_karpeg}</td>
+                        <td>${pegawai.jabatan || ''}</td>
+                        <td>${pegawai.masa_kerja_tahun || ''}</td>
+                        <td>${pegawai.masa_kerja_bulan || ''}</td>
+                        <td>${pegawai.pendidikan_terakhir || ''}</td>
+                        <td>${pegawai.no_karpeg || ''}</td>
                         <td>${formatDate(pegawai.tmt_cpns)}</td>
                         <td>${formatDate(pegawai.tmt_pns)}</td>
                         <td>${formatDate(pegawai.naik_pangkat_berikutnya)}</td>
@@ -840,16 +870,37 @@
                 }, 2500);
             };
 
-            const modal = document.getElementById('pegawaiModal');
+            const showError = (message) => {
+                document.getElementById('errorMessage').textContent = message;
+                document.getElementById('errorModal').style.display = 'flex';
+            };
+
+            const logoutLink = document.getElementById('logoutLink');
+            if(logoutLink) {
+                logoutLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    sessionStorage.removeItem('isLoggedIn');
+                    showNotification('Anda telah berhasil keluar.');
+                    console.log("Logout berhasil. Pengalihan ke halaman login dinonaktifkan dalam mode pratinjau.");
+                });
+            }
+
+            const pegawaiModal = document.getElementById('pegawaiModal');
             document.getElementById('addBtn').addEventListener('click', () => {
                 document.getElementById('pegawaiForm').reset();
                 document.getElementById('pegawaiId').value = '';
                 document.getElementById('modalTitle').textContent = 'Tambah Data Pegawai';
-                modal.style.display = 'flex';
+                pegawaiModal.style.display = 'flex';
             });
-
-            document.querySelector('.close-modal').addEventListener('click', () => modal.style.display = 'none');
-            document.getElementById('cancelBtn').addEventListener('click', () => modal.style.display = 'none');
+            
+            document.querySelectorAll('.close-modal, #cancelBtn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const modal = e.target.closest('.modal');
+                    if (modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            });
 
             document.getElementById('pegawaiForm').addEventListener('submit', function(e) {
                 e.preventDefault();
@@ -872,7 +923,7 @@
                 }
                 
                 renderTable();
-                modal.style.display = 'none';
+                pegawaiModal.style.display = 'none';
             });
             
             document.getElementById('pegawaiTableBody').addEventListener('click', (e) => {
@@ -888,7 +939,7 @@
                         });
                         document.getElementById('pegawaiId').value = id;
                         document.getElementById('modalTitle').textContent = 'Edit Data Pegawai';
-                        modal.style.display = 'flex';
+                        pegawaiModal.style.display = 'flex';
                     }
                 } else if (button.classList.contains('delete-btn')) {
                      if (confirm('Yakin ingin menghapus data ini?')) {
@@ -899,7 +950,6 @@
                 }
             });
             
-            // --- Print & Export & Import ---
             document.getElementById('printBtn').addEventListener('click', () => window.print());
             
             document.getElementById('exportBtn').addEventListener('click', function() {
@@ -913,49 +963,89 @@
             const importBtn = document.getElementById('importBtn');
             const importFile = document.getElementById('importFile');
             importBtn.addEventListener('click', () => importFile.click());
+
             importFile.addEventListener('change', (event) => {
                 const file = event.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
                         const data = new Uint8Array(e.target.result);
-                        const workbook = XLSX.read(data, {type: 'array', cellDates:true});
+                        const workbook = XLSX.read(data, { type: 'array', cellDates: true });
                         const firstSheetName = workbook.SheetNames[0];
                         const worksheet = workbook.Sheets[firstSheetName];
-                        const json_data = XLSX.utils.sheet_to_json(worksheet, {raw: false});
 
-                        const newPegawaiData = json_data.map((row, index) => {
+                        const sheet_data_full = XLSX.utils.sheet_to_json(worksheet, {
+                            raw: false, header: 1, defval: ""
+                        });
+
+                        if (sheet_data_full.length < 3) {
+                            showError('Format file Excel tidak valid. Pastikan file memiliki 2 baris header dan setidaknya 1 baris data.');
+                            return;
+                        }
+
+                        const sheet_data = sheet_data_full.slice(2);
+
+                        if (sheet_data.length === 0) {
+                            showError('Tidak ada data yang ditemukan setelah baris header.');
+                            return;
+                        }
+
+                        const formatDateFromCell = (cell) => {
+                            if (!cell) return '';
+                            let date = cell;
+                            if (!(cell instanceof Date)) { date = new Date(cell); }
+                            if (isNaN(date.getTime())) { return String(cell); }
+                            const correctedDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+                            return correctedDate.toISOString().split('T')[0];
+                        };
+
+                        // --- PERUBAHAN LOGIKA IMPOR ---
+                        // Logika ini sekarang mengasumsikan file Excel memiliki kolom terpisah
+                        // untuk Nama dan Tanggal Lahir, lalu menggeser indeks kolom berikutnya.
+                        const newPegawaiData = sheet_data.map((row, index) => {
                             return {
                                 id: (pegawaiData.length > 0 ? Math.max(...pegawaiData.map(p => p.id)) : 0) + index + 1,
-                                nama: row['NAMA / TGL LAHIR'] ? row['NAMA / TGL LAHIR'].split('\n')[0] : '',
-                                tanggal_lahir: row['NAMA / TGL LAHIR'] ? new Date(row['NAMA / TGL LAHIR'].split('\n')[1]).toISOString().split('T')[0] : '',
-                                nip: row['NIP'],
-                                jenis_kelamin: row['JK'],
-                                agama: row['AGAMA'],
-                                status_pegawai: row['STATUS'],
-                                gol_ruang: row['GOL'],
-                                tmt_pangkat: row['TMT PANGKAT'] ? new Date(row['TMT PANGKAT']).toISOString().split('T')[0] : '',
-                                pangkat: row['NAMA PANGKAT'],
-                                eselon: row['ESL'],
-                                tmt_jabatan: row['TMT JABATAN'] ? new Date(row['TMT JABATAN']).toISOString().split('T')[0] : '',
-                                jabatan: row['NAMA JABATAN'],
-                                masa_kerja_tahun: row['THN'],
-                                masa_kerja_bulan: row['BLN'],
-                                pendidikan_terakhir: row['PENDIDIKAN'],
-                                no_karpeg: row['KARPEG'],
-                                tmt_cpns: row['TMT CPNS'] ? new Date(row['TMT CPNS']).toISOString().split('T')[0] : '',
-                                tmt_pns: row['TMT PNS'] ? new Date(row['TMT PNS']).toISOString().split('T')[0] : '',
-                                naik_pangkat_berikutnya: row['NAIK PANGKAT'] ? new Date(row['NAIK PANGKAT']).toISOString().split('T')[0] : '',
-                                naik_gaji_berikutnya: row['NAIK GAJI'] ? new Date(row['NAIK GAJI']).toISOString().split('T')[0] : ''
+                                nama: row[1] || '', // Kolom B
+                                tanggal_lahir: formatDateFromCell(row[2]), // Kolom C
+                                nip: row[3], // Kolom D
+                                jenis_kelamin: row[4], // Kolom E
+                                agama: row[5], // Kolom F
+                                status_pegawai: row[6], // Kolom G
+                                gol_ruang: row[7], // Kolom H
+                                tmt_pangkat: formatDateFromCell(row[8]), // Kolom I
+                                pangkat: row[9], // Kolom J
+                                eselon: row[10], // Kolom K
+                                tmt_jabatan: formatDateFromCell(row[11]), // Kolom L
+                                jabatan: row[12], // Kolom M
+                                masa_kerja_tahun: row[13], // Kolom N
+                                masa_kerja_bulan: row[14], // Kolom O
+                                pendidikan_terakhir: row[15], // Kolom P
+                                no_karpeg: row[16], // Kolom Q
+                                tmt_cpns: formatDateFromCell(row[17]), // Kolom R
+                                tmt_pns: formatDateFromCell(row[18]), // Kolom S
+                                naik_pangkat_berikutnya: formatDateFromCell(row[19]), // Kolom T
+                                naik_gaji_berikutnya: formatDateFromCell(row[20]) // Kolom U
                             };
-                        });
+                        }).filter(p => p.nip && String(p.nip).trim() !== '');
+
+                        if (newPegawaiData.length === 0) {
+                            showError('Tidak ada data valid yang dapat diimpor. Pastikan kolom NIP terisi dan format file Excel sesuai.');
+                            return;
+                        }
 
                         pegawaiData = pegawaiData.concat(newPegawaiData);
                         renderTable();
                         showNotification(`${newPegawaiData.length} data berhasil diimpor!`);
-                    };
-                    reader.readAsArrayBuffer(file);
-                }
+                    } catch (error) {
+                        console.error("Error importing file:", error);
+                        showError("Terjadi kesalahan saat memproses file Excel. Pastikan format file benar. Detail: " + error.message);
+                    } finally {
+                        importFile.value = '';
+                    }
+                };
+                reader.readAsArrayBuffer(file);
             });
 
 
