@@ -59,7 +59,7 @@
             <!-- Konten disposisi akan dimuat di sini oleh JavaScript -->
         </div>
         <div class="form-group">
-            <label for="teruskanKe">Teruskan Hasil Disposisi Ke:</label>
+            <label for="teruskanKe">Kirim Balasan Disposisi Ke:</label>
             <select id="teruskanKe">
                 <option value="" disabled selected>Pilih Tujuan</option>
             </select>
@@ -71,7 +71,7 @@
                 <button class="btn" id="pickContactBtn" title="Pilih dari Kontak"><i class="fas fa-address-book"></i></button>
             </div>
         </div>
-        <button class="btn" id="saveDisposisiBtn" style="margin-top: 20px; float: right; background-color: var(--success-color);"><i class="fab fa-whatsapp"></i> Kirim Disposisi Lanjutan</button>
+        <button class="btn" id="saveDisposisiBtn" style="margin-top: 20px; float: right; background-color: var(--success-color);"><i class="fab fa-whatsapp"></i> Kirim Balasan & Selesai</button>
     </div>
 
     <script>
@@ -96,7 +96,6 @@
                 return;
             }
 
-            // --- Daftar Kontak untuk Penerusan ---
             const daftarKontak = [
                 { nama: 'Staf Pengirim (Admin)', no_wa: '6285349577060' }, 
                 { nama: 'Kepala Dinas', no_wa: '6281200000001' },
