@@ -18,6 +18,7 @@
             --border-color: #dee2e6;
             --shadow-color: rgba(0, 0, 0, 0.1);
             --success-color: #28a745;
+            --warning-color: #ffc107;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background-color: var(--bg-primary); color: var(--text-primary); padding: 20px; }
@@ -51,6 +52,17 @@
         .signature-block { float: right; text-align: center; width: 300px; margin-top: 20px; font-family: 'Times New Roman', Times, serif; font-size: 12px; }
         .signature-block p { margin: 0; line-height: 1.5; }
         .signature-block .name { margin-top: 50px; font-weight: bold; text-decoration: underline; }
+
+        /* --- Custom Notification/Alert --- */
+        .custom-alert-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); justify-content: center; align-items: center; z-index: 3000; opacity: 0; transition: opacity 0.3s ease; }
+        .custom-alert-overlay.show { display: flex; opacity: 1; }
+        .custom-alert-box { background: var(--bg-secondary); padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; width: 90%; max-width: 400px; transform: scale(0.7); opacity: 0; transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
+        .custom-alert-overlay.show .custom-alert-box { transform: scale(1); opacity: 1; }
+        .custom-alert-icon { font-size: 50px; margin-bottom: 20px; }
+        .custom-alert-icon .fa-check-circle { color: var(--success-color); }
+        .custom-alert-icon .fa-exclamation-triangle { color: var(--warning-color); }
+        .custom-alert-message { font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 25px; line-height: 1.6; }
+        .custom-alert-buttons { display: flex; justify-content: center; gap: 15px; }
     </style>
 </head>
 <body>
@@ -74,6 +86,19 @@
         <button class="btn" id="saveDisposisiBtn" style="margin-top: 20px; float: right; background-color: var(--success-color);"><i class="fab fa-whatsapp"></i> Kirim Balasan & Selesai</button>
     </div>
 
+    <!-- Custom Notification Alert -->
+    <div id="customAlert" class="custom-alert-overlay">
+        <div class="custom-alert-box">
+            <div class="custom-alert-icon">
+                <i class="fas"></i>
+            </div>
+            <p class="custom-alert-message"></p>
+            <div class="custom-alert-buttons">
+                <button id="alertConfirmBtn" class="btn"></button>
+            </div>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const disposisiContainer = document.getElementById('printableDisposisi');
@@ -83,13 +108,45 @@
             const pickContactBtn = document.getElementById('pickContactBtn');
             const urlParams = new URLSearchParams(window.location.search);
 
+            // --- Custom Alert Function ---
+            const customAlert = document.getElementById('customAlert');
+            const alertMessage = customAlert.querySelector('.custom-alert-message');
+            const alertIcon = customAlert.querySelector('.custom-alert-icon i');
+            const alertConfirmBtn = document.getElementById('alertConfirmBtn');
+
+            function showAlert(message, type = 'success', onConfirm = null) {
+                alertMessage.textContent = message;
+                alertIcon.className = 'fas';
+
+                alertConfirmBtn.onclick = () => {
+                    hideAlert();
+                    if (onConfirm) onConfirm();
+                };
+
+                if (type === 'warning') {
+                    alertIcon.classList.add('fa-exclamation-triangle');
+                    alertConfirmBtn.textContent = 'OK';
+                    alertConfirmBtn.style.backgroundColor = 'var(--warning-color)';
+                } else { // 'success'
+                    alertIcon.classList.add('fa-check-circle');
+                    alertConfirmBtn.textContent = 'Lanjutkan';
+                     alertConfirmBtn.style.backgroundColor = 'var(--success-color)';
+                }
+                
+                customAlert.classList.add('show');
+            }
+
+            function hideAlert() {
+                customAlert.classList.remove('show');
+            }
+
             const surat = {};
             for(let [key, value] of urlParams.entries()){
                 surat[key] = decodeURIComponent(value);
             }
 
             if (!surat.id) {
-                disposisiContainer.innerHTML = '<h2>Data surat tidak ditemukan atau tautan tidak valid.</h2>';
+                disposisiContainer.innerHTML = '<h2>Data surat tidak ditemukan atau tautan tidak valid.</h2><p>Pastikan tautan yang Anda buka sudah benar dan lengkap.</p>';
                 saveBtn.style.display = 'none';
                 teruskanSelect.parentElement.style.display = 'none';
                 nomorWaInput.parentElement.style.display = 'none';
@@ -148,7 +205,7 @@
 
             disposisiContainer.innerHTML = `
                 <div class="print-header">
-                    <img src="logo copy.png" alt="Logo KKT" class="logo" onerror="this.src='https://placehold.co/80x80?text=Logo'">
+                    <img src="https://i.ibb.co/zV4syN7/logo-kkt.png" alt="Logo KKT" class="logo" onerror="this.src='https://placehold.co/80x80?text=Logo'">
                     <div class="header-text">
                         <h3>PEMERINTAH KABUPATEN KEPULAUAN TANIMBAR</h3>
                         <h2>DINAS PEMBERDAYAAN MASYARAKAT DAN DESA</h2>
@@ -187,7 +244,6 @@
                                 <strong>Diteruskan kepada Sdr:</strong>
                                 <div id="disp_diteruskan" style="padding-left: 10px; margin-top: 5px;">
                                     ${pejabatStruktural.map(j => `<label><input type="checkbox" name="diteruskan" value="${j}"> ${j}</label>`).join('')}
-                                    <!-- PERUBAHAN DI SINI -->
                                     <label><input type="checkbox" id="diteruskan_lainnya_check"> Lainnya</label>
                                     <textarea id="diteruskan_lainnya_text" style="display:none; width: 95%; margin-left: 15px; margin-top: 5px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-family: 'Times New Roman', Times, serif; font-size: 12px;" rows="2" placeholder="Isi tujuan lainnya..."></textarea>
                                 </div>
@@ -216,15 +272,12 @@
                 </div>
             `;
             
-            // --- LOGIKA BARU UNTUK OPSI LAINNYA ---
             const diteruskanLainnyaCheck = document.getElementById('diteruskan_lainnya_check');
             const diteruskanLainnyaText = document.getElementById('diteruskan_lainnya_text');
             diteruskanLainnyaCheck.addEventListener('change', function() {
-                if (this.checked) {
-                    diteruskanLainnyaText.style.display = 'block';
-                } else {
-                    diteruskanLainnyaText.style.display = 'none';
-                    diteruskanLainnyaText.value = ''; // Hapus isi jika tidak dicentang
+                diteruskanLainnyaText.style.display = this.checked ? 'block' : 'none';
+                if (!this.checked) {
+                    diteruskanLainnyaText.value = '';
                 }
             });
 
@@ -234,13 +287,12 @@
                 const instruksi = Array.from(document.querySelectorAll('input[name="instruksi"]:checked')).map(el => el.value);
                 const nomorTujuan = nomorWaInput.value;
 
-                // --- LOGIKA BARU UNTUK MENGAMBIL DATA DARI OPSI LAINNYA ---
                 if (diteruskanLainnyaCheck.checked && diteruskanLainnyaText.value.trim() !== '') {
                     diteruskan.push(diteruskanLainnyaText.value.trim());
                 }
 
                 if (!nomorTujuan) {
-                    alert('Silakan pilih tujuan dan pastikan nomor WhatsApp terisi.');
+                    showAlert('Silakan pilih tujuan dan pastikan nomor WhatsApp terisi.', 'warning');
                     return;
                 }
 
@@ -271,8 +323,9 @@ ${updateUrl.toString()}`;
 
                 const whatsappUrl = `https://api.whatsapp.com/send?phone=${nomorTujuan}&text=${encodeURIComponent(replyMessage)}`;
                 
-                alert('Tautan pembaruan disposisi akan dikirim. Klik OK untuk melanjutkan ke WhatsApp.');
-                window.open(whatsappUrl, '_blank');
+                showAlert('Tautan pembaruan disposisi akan dikirim. Klik Lanjutkan untuk membuka WhatsApp.', 'success', () => {
+                     window.open(whatsappUrl, '_blank');
+                });
             });
         });
     </script>
