@@ -176,6 +176,7 @@
     </style>
 </head>
 <body>
+    <!-- Sidebar -->
     <div class="sidebar no-print" id="sidebar">
         <div class="sidebar-header">
             <h3>DPMD</h3>
@@ -216,6 +217,7 @@
         </div>
     </div>
     
+    <!-- Main Content -->
     <div class="main-content" id="mainContent">
         <header class="header no-print">
              <div class="header-left">
@@ -246,6 +248,7 @@
             </div>
         </div>
 
+        <!-- Add/Edit Surat Modal -->
         <div id="suratModal" class="modal no-print">
             <div class="modal-content">
                 <div class="modal-header">
@@ -303,7 +306,7 @@
                         </div>
                         <div class="form-group">
                             <label for="nomorWa">Nomor WhatsApp Tujuan</label>
-                            <input type="tel" id="nomorWa" placeholder="Contoh: 6281234567890">
+                            <input type="tel" id="nomorWa" placeholder="Contoh: 6281234567890" required>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -313,6 +316,7 @@
             </div>
         </div>
 
+        <!-- Disposisi Modal -->
         <div id="disposisiModal" class="modal">
             <div class="modal-content card print-this">
                 <div class="modal-header no-print">
@@ -398,6 +402,7 @@
         </div>
     </div>
 
+    <!-- Custom Notification Alert -->
     <div id="customAlert" class="custom-alert-overlay no-print">
         <div class="custom-alert-box">
             <div class="custom-alert-icon">
@@ -456,6 +461,7 @@
             let suratMasukData = JSON.parse(localStorage.getItem('suratMasukDataDPMD')) || [];
             let pegawaiData = JSON.parse(localStorage.getItem('pegawaiDataDPMD')) || [];
             let currentEditId = null;
+            let isDisposisiViewMode = false;
             
             const pimpinanData = [
                 { nama: 'Sekretaris' },
@@ -576,9 +582,21 @@
                 suratModal.style.display = 'none';
             }
             
-            window.openDisposisi = function(suratId) {
-                currentEditId = suratId;
-                const surat = suratMasukData.find(s => s.id === suratId);
+            function openDisposisi(suratOrId) {
+                let surat;
+                if (typeof suratOrId === 'string') {
+                    currentEditId = suratOrId;
+                    surat = suratMasukData.find(s => s.id === suratOrId);
+                } else {
+                    surat = suratOrId;
+                    currentEditId = surat.id; // Store ID for potential saving
+                }
+
+                if (!surat) {
+                    showAlert('Data surat tidak ditemukan. Mungkin tautan sudah kedaluwarsa.', 'delete');
+                    return;
+                }
+
                 const disposisi = surat.disposisi || {};
                 
                 document.getElementById('disp_pengirim').textContent = surat.pengirim;
@@ -620,9 +638,15 @@
 
                 disposisiModal.style.display = 'flex';
             }
+            window.openDisposisi = openDisposisi;
+
 
             function closeDisposisi() {
-                disposisiModal.style.display = 'none';
+                if (isDisposisiViewMode) {
+                    showAlert('Terima kasih. Silakan tutup jendela ini.');
+                } else {
+                    disposisiModal.style.display = 'none';
+                }
             }
             
             window.deleteSurat = function(suratId) {
@@ -639,26 +663,29 @@
             }
 
             function saveDisposisi() {
-                const index = suratMasukData.findIndex(s => s.id === currentEditId);
-                if (index === -1) {
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const disposisiId = urlParams.get('disposisi');
-                    const suratIndex = suratMasukData.findIndex(s => s.id === disposisiId);
-                    if(suratIndex === -1) return;
+                const suratIndex = suratMasukData.findIndex(s => s.id === currentEditId);
+                
+                if (isDisposisiViewMode) {
+                    // Mode Pimpinan: Kirim balasan WA, jangan simpan ke local storage
+                    const catatan = document.getElementById('disp_catatan').value;
+                    const diteruskan = Array.from(document.querySelectorAll('#disp_diteruskan input:checked')).map(el => el.value).join(', ');
+                    const instruksi = Array.from(document.querySelectorAll('#disp_instruksi input:checked')).map(el => el.value).join(', ');
+
+                    const noAgenda = document.getElementById('disp_noAgenda').textContent;
+                    const staffWANumber = '6281234567890'; // GANTI DENGAN NOMOR WA STAF/ADMIN
+
+                    const replyMessage = `*BALASAN DISPOSISI* ✅\n\n*No. Agenda:* ${noAgenda}\n\n*Catatan:* ${catatan}\n*Diteruskan kepada:* ${diteruskan}\n*Instruksi:* ${instruksi}\n\nDisposisi telah diisi.`;
+                    const whatsappUrl = `https://api.whatsapp.com/send?phone=${staffWANumber}&text=${encodeURIComponent(replyMessage)}`;
                     
-                    const surat = suratMasukData[suratIndex];
-                    if (!surat.disposisi) surat.disposisi = {};
-                    surat.disposisi.catatan = document.getElementById('disp_catatan').value;
-                    surat.disposisi.diteruskan = Array.from(document.querySelectorAll('#disp_diteruskan input:checked')).map(el => el.value);
-                    surat.disposisi.instruksi = Array.from(document.querySelectorAll('#disp_instruksi input:checked')).map(el => el.value);
-                    saveData();
-                    showAlert('Disposisi telah berhasil dikirim!', 'success', () => {
-                         window.location.href = 'suratmasuk.html';
+                    showAlert('Disposisi akan dikirim kembali ke staf. Klik OK untuk melanjutkan.', 'success', () => {
+                        window.open(whatsappUrl, '_blank');
                     });
                     return;
                 }
-
-                const surat = suratMasukData[index];
+                
+                // Mode Staf: Simpan ke local storage
+                if (suratIndex === -1) return;
+                const surat = suratMasukData[suratIndex];
                 if (!surat.disposisi) surat.disposisi = {};
 
                 const checkedSifat = document.querySelector('input[name="disp_sifat"]:checked');
@@ -714,8 +741,11 @@
                 const namaTujuan = suratData.tujuanSurat;
 
                 if (no_wa && namaTujuan) {
-                    const baseUrl = window.location.origin + window.location.pathname;
-                    const disposisiUrl = `${baseUrl}?disposisi=${suratId}`;
+                    const path = window.location.pathname.replace(/[^/]*$/, 'suratmasuk.html');
+                    const baseUrl = window.location.origin + path;
+                    
+                    const params = new URLSearchParams({ view: 'disposisi', ...suratData });
+                    const disposisiUrl = `${baseUrl}?${params.toString()}`;
 
                     let message = `*SURAT MASUK BARU* 📨\n\nYth. Bapak/Ibu ${namaTujuan},\n\nAda surat masuk baru yang memerlukan perhatian Bapak/Ibu.\n\n*Dari:* ${suratData.pengirim}\n*No. Surat:* ${suratData.noSurat}\n*Perihal:* ${suratData.perihal}\n\n`;
 
@@ -766,19 +796,31 @@
             }
 
             // --- Check for disposisi link on page load ---
-            function checkDisposisiLink() {
+            function initializePage() {
                 const urlParams = new URLSearchParams(window.location.search);
-                const disposisiId = urlParams.get('disposisi');
-                if (disposisiId) {
-                    // Hide main content and show disposisi modal directly
-                    document.querySelector('.main-content').style.display = 'none';
-                    openDisposisi(disposisiId);
+                if (urlParams.get('view') === 'disposisi') {
+                    isDisposisiViewMode = true;
+                    document.getElementById('mainContent').style.display = 'none';
+                    document.getElementById('sidebar').style.display = 'none';
+                    
+                    const suratFromUrl = {};
+                    for(let [key, value] of urlParams.entries()){
+                        suratFromUrl[key] = value;
+                    }
+                    
+                    // The disposisi button needs to send a WA reply
+                    const saveBtn = document.getElementById('saveDisposisiBtn');
+                    saveBtn.innerHTML = '<i class="fab fa-whatsapp"></i> Kirim Balasan Disposisi';
+                    saveBtn.style.backgroundColor = 'var(--success-color)';
+
+                    openDisposisi(suratFromUrl);
+                } else {
+                    renderSuratTable();
                 }
             }
 
             // Initial Load
-            renderSuratTable();
-            checkDisposisiLink();
+            initializePage();
         });
     </script>
 </body>
