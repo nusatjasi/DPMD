@@ -236,10 +236,10 @@
                 updateUrl.searchParams.set('diteruskan', diteruskan.join('||'));
                 updateUrl.searchParams.set('instruksi', instruksi.join('||'));
 
-                let replyMessage = `*HASIL DISPOSISI* ✅\n\nDisposisi untuk surat No. Agenda ${surat.noAgenda} telah diisi.\n\n*Perihal:* ${surat.perihal}\n\n-------------------\n*HASIL DISPOSISI:*\n*Catatan:* ${catatan || '-'}\n*Diteruskan kepada:* ${diteruskan.join(', ') || '-'}\n*Instruksi:* ${instruksi.join(', ') || '-'}\n-------------------\n\n`;
+                let replyMessage;
                 
                 if (namaTujuan === 'Staf Pengirim (Admin)') {
-                    replyMessage += `*Jika sudah Anda baca, silahkan klik tautan di bawah ini untuk mengarsipkan hasil disposisi ini ke dalam sistem:*\n\n${updateUrl.toString()}`;
+                    replyMessage = `*HASIL DISPOSISI* ✅\n\nDisposisi untuk surat No. Agenda ${surat.noAgenda} telah diisi.\n\n*Perihal:* ${surat.perihal}\n\n-------------------\n*HASIL DISPOSISI:*\n*Catatan:* ${catatan || '-'}\n*Diteruskan kepada:* ${diteruskan.join(', ') || '-'}\n*Instruksi:* ${instruksi.join(', ') || '-'}\n-------------------\n\n*Jika sudah Anda baca, silahkan klik tautan di bawah ini untuk mengarsipkan hasil disposisi ini ke dalam sistem:*\n\n${updateUrl.toString()}`;
                 } else {
                     replyMessage = `*HASIL DISPOSISI (TINDAK LANJUT)* forwarded\n\nYth. Bapak/Ibu ${namaTujuan},\n\nBerikut hasil disposisi dari pimpinan terkait surat masuk:\n\n*Dari:* ${surat.pengirim}\n*No. Surat:* ${surat.noSurat}\n*Perihal:* ${surat.perihal}\n\n-------------------\n*HASIL DISPOSISI:*\n*Catatan:* ${catatan || '-'}\n*Diteruskan kepada:* ${diteruskan.join(', ') || '-'}\n*Instruksi:* ${instruksi.join(', ') || '-'}\n-------------------\n\n${surat.linkSurat ? `*Lihat Lampiran Surat Asli:*\n${surat.linkSurat}\n\n` : ''}Mohon untuk ditindaklanjuti. Terima kasih.`;
                 }
