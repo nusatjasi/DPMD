@@ -43,7 +43,7 @@
         .sidebar-menu a { display: flex; align-items: center; padding: 15px 25px; color: var(--text-secondary); text-decoration: none; transition: all 0.3s ease; font-size: 0.95rem; margin: 5px 15px; border-radius: 8px; white-space: nowrap; }
         .sidebar-menu a:hover, .sidebar-menu a.active { background-color: var(--secondary-accent); color: #ffffff; transform: translateX(5px); box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3); }
         .sidebar-menu a:hover i, .sidebar-menu a.active i { color: #ffffff !important; }
-        .sidebar-menu a i.menu-icon { margin-right: 15px; width: 20px; text-align: center; font-size: 1.1rem; transition: margin 0.4s ease; }
+        .sidebar-menu a i.menu-icon { margin-right: 15px; width: 20px; text-align: center; font-size: 1.1rem; transition: margin 0.4s ease; color: var(--text-secondary); /* Warna ikon seragam */ }
         .dropdown-toggle { justify-content: space-between; }
         .dropdown-icon { transition: transform 0.3s ease; }
         .menu-item-has-children.open > .dropdown-toggle .dropdown-icon { transform: rotate(180deg); }
@@ -176,7 +176,6 @@
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
     <div class="sidebar no-print" id="sidebar">
         <div class="sidebar-header">
             <h3>DPMD</h3>
@@ -184,25 +183,25 @@
         </div>
         <div class="sidebar-menu">
             <ul>
-                <li><a href="./index.html"><i class="fas fa-home menu-icon icon-color-1"></i> <span>Beranda</span></a></li>
-                <li><a href="datapegawai.html"><i class="fas fa-users menu-icon icon-color-2"></i> <span>Data Pegawai</span></a></li>
+                <li><a href="./index.html"><i class="fas fa-home menu-icon"></i> <span>Beranda</span></a></li>
+                <li><a href="datapegawai.html"><i class="fas fa-users menu-icon"></i> <span>Data Pegawai</span></a></li>
                 <li class="menu-item-has-children open">
                     <a href="#" class="dropdown-toggle">
-                        <div><i class="fas fa-envelope-open-text menu-icon icon-color-3"></i> <span>Surat</span></div>
+                        <div><i class="fas fa-envelope-open-text menu-icon"></i> <span>Surat</span></div>
                         <i class="fas fa-chevron-down dropdown-icon"></i>
                     </a>
                     <ul class="submenu">
-                        <li><a href="suratmasuk.html" class="active">Surat Masuk</a></li>
+                        <li><a href="masuksuratcontoh.html" class="active">Surat Masuk</a></li>
                         <li><a href="#">Surat Keluar</a></li>
                     </ul>
                 </li>
-                <li><a href="./bezeting.html"><i class="fas fa-file-invoice menu-icon icon-color-4"></i> <span>Bezeting Pegawai</span></a></li>
-                <li><a href="#"><i class="fas fa-village menu-icon icon-color-5"></i> <span>Data Desa</span></a></li>
-                <li><a href="#"><i class="fas fa-info-circle menu-icon icon-color-6"></i> <span>Informasi</span></a></li>
-                <li><a href="./data_master.html"><i class="fas fa-database menu-icon icon-color-7"></i> <span>Data Master</span></a></li>
+                <li><a href="./bezeting.html"><i class="fas fa-file-invoice menu-icon"></i> <span>Bezeting Pegawai</span></a></li>
+                <li><a href="#"><i class="fas fa-village menu-icon"></i> <span>Data Desa</span></a></li>
+                <li><a href="#"><i class="fas fa-info-circle menu-icon"></i> <span>Informasi</span></a></li>
+                <li><a href="./data_master.html"><i class="fas fa-database menu-icon"></i> <span>Data Master</span></a></li>
                 <li class="menu-item-has-children">
                     <a href="#" class="dropdown-toggle">
-                         <div><i class="fas fa-clipboard-user menu-icon icon-color-8"></i> <span>Daftar Hadir</span></div>
+                         <div><i class="fas fa-clipboard-user menu-icon"></i> <span>Daftar Hadir</span></div>
                          <i class="fas fa-chevron-down dropdown-icon"></i>
                     </a>
                     <ul class="submenu">
@@ -217,7 +216,6 @@
         </div>
     </div>
     
-    <!-- Main Content -->
     <div class="main-content" id="mainContent">
         <header class="header no-print">
              <div class="header-left">
@@ -248,7 +246,6 @@
             </div>
         </div>
 
-        <!-- Add/Edit Surat Modal -->
         <div id="suratModal" class="modal no-print">
             <div class="modal-content">
                 <div class="modal-header">
@@ -306,7 +303,7 @@
                         </div>
                         <div class="form-group">
                             <label for="nomorWa">Nomor WhatsApp Tujuan</label>
-                            <input type="text" id="nomorWa" readonly style="background-color: #e9ecef;">
+                            <input type="tel" id="nomorWa" placeholder="Contoh: 6281234567890">
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -316,7 +313,6 @@
             </div>
         </div>
 
-        <!-- Disposisi Modal -->
         <div id="disposisiModal" class="modal">
             <div class="modal-content card print-this">
                 <div class="modal-header no-print">
@@ -334,7 +330,6 @@
                     </div>
                 </div>
 
-                <!-- Content to be printed -->
                 <div id="printableDisposisi">
                     <div class="print-header">
                         <img src="https://i.ibb.co/zV4syN7/logo-kkt.png" alt="Logo KKT" class="logo" onerror="this.src='https://placehold.co/80x80?text=Logo'">
@@ -403,7 +398,6 @@
         </div>
     </div>
 
-    <!-- Custom Notification Alert -->
     <div id="customAlert" class="custom-alert-overlay no-print">
         <div class="custom-alert-box">
             <div class="custom-alert-icon">
@@ -463,11 +457,10 @@
             let pegawaiData = JSON.parse(localStorage.getItem('pegawaiDataDPMD')) || [];
             let currentEditId = null;
             
-            // --- Data Pimpinan (Contoh) ---
             const pimpinanData = [
-                { nama: 'Sekretaris', no_wa: '6285349577060' }, // Ganti dengan nomor asli
-                { nama: 'Kabid. Kelembagaan & PMD', no_wa: '6281234567891' },
-                { nama: 'Kabid. Pemberdayaan Ekonomi & TTG', no_wa: '6281234567892' },
+                { nama: 'Sekretaris' },
+                { nama: 'Kabid. Kelembagaan & PMD' },
+                { nama: 'Kabid. Pemberdayaan Ekonomi & TTG' },
             ];
 
             const pejabatStruktural = ["Sekretaris", "Kabid. Kelembagaan & PMD", "Kabid. Pemberdayaan Ekonomi & TTG", "Analis Kebijakan", "Pranata Komputer"];
@@ -546,16 +539,9 @@
                     const option = document.createElement('option');
                     option.value = p.nama;
                     option.textContent = p.nama;
-                    option.dataset.no_wa = p.no_wa;
                     tujuanSelect.appendChild(option);
                 });
             }
-
-            document.getElementById('tujuanSurat').addEventListener('change', function() {
-                const selectedOption = this.options[this.selectedIndex];
-                const no_wa = selectedOption.dataset.no_wa || '';
-                document.getElementById('nomorWa').value = no_wa;
-            });
 
             function openModal(suratId = null) {
                 suratForm.reset();
@@ -575,11 +561,7 @@
                     document.getElementById('perihal').value = surat.perihal;
                     document.getElementById('linkSurat').value = surat.linkSurat || '';
                     document.getElementById('tujuanSurat').value = surat.tujuanSurat || '';
-                    
-                    // Trigger change to populate WA number
-                    const event = new Event('change');
-                    document.getElementById('tujuanSurat').dispatchEvent(event);
-
+                    document.getElementById('nomorWa').value = surat.nomorWa || '';
                 } else {
                     document.getElementById('modalTitle').textContent = 'Tambah Surat Masuk Baru';
                     const lastAgenda = suratMasukData.reduce((max, s) => Math.max(max, parseInt(s.noAgenda) || 0), 0);
@@ -659,7 +641,6 @@
             function saveDisposisi() {
                 const index = suratMasukData.findIndex(s => s.id === currentEditId);
                 if (index === -1) {
-                     // If opened from a direct link, we might not have a currentEditId
                     const urlParams = new URLSearchParams(window.location.search);
                     const disposisiId = urlParams.get('disposisi');
                     const suratIndex = suratMasukData.findIndex(s => s.id === disposisiId);
@@ -672,7 +653,7 @@
                     surat.disposisi.instruksi = Array.from(document.querySelectorAll('#disp_instruksi input:checked')).map(el => el.value);
                     saveData();
                     showAlert('Disposisi telah berhasil dikirim!', 'success', () => {
-                         window.location.href = 'suratmasuk.html'; // Redirect back to main page
+                         window.location.href = 'suratmasuk.html';
                     });
                     return;
                 }
@@ -712,7 +693,8 @@
                     pengirim: document.getElementById('pengirim').value,
                     perihal: document.getElementById('perihal').value,
                     linkSurat: document.getElementById('linkSurat').value,
-                    tujuanSurat: document.getElementById('tujuanSurat').value
+                    tujuanSurat: document.getElementById('tujuanSurat').value,
+                    nomorWa: document.getElementById('nomorWa').value
                 };
                 
                 if(currentEditId) {
@@ -728,7 +710,7 @@
                 closeModal();
                 
                 // --- Send WhatsApp Notification ---
-                const no_wa = document.getElementById('nomorWa').value;
+                const no_wa = suratData.nomorWa;
                 const namaTujuan = suratData.tujuanSurat;
 
                 if (no_wa && namaTujuan) {
@@ -800,4 +782,4 @@
         });
     </script>
 </body>
-</ht
+</html>
