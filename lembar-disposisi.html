@@ -26,7 +26,7 @@
         .disposisi-container { max-width: 800px; margin: auto; background: var(--bg-secondary); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px var(--shadow-color); }
         .form-group { display: flex; flex-direction: column; margin-top: 20px; }
         .form-group label { margin-bottom: 5px; font-weight: 500; color: var(--text-secondary); }
-        .form-group select { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; }
+        .form-group select, .form-group input { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem; }
         .print-header { display: flex; align-items: center; justify-content: center; margin-bottom: 15px; border-bottom: 3px solid black; padding-bottom: 10px; gap: 20px; }
         .print-header .logo { width: 70px; height: auto; }
         .print-header .header-text { text-align: center; font-family: 'Times New Roman', Times, serif; flex-grow: 1; }
@@ -61,6 +61,10 @@
                 <option value="" disabled selected>Pilih Tujuan</option>
             </select>
         </div>
+        <div class="form-group">
+            <label for="nomorWaTujuan">Nomor WhatsApp Tujuan:</label>
+            <input type="tel" id="nomorWaTujuan" placeholder="Pilih tujuan untuk mengisi nomor otomatis atau isi manual">
+        </div>
         <button class="btn" id="saveDisposisiBtn" style="margin-top: 20px; float: right; background-color: var(--success-color);"><i class="fab fa-whatsapp"></i> Kirim Disposisi Lanjutan</button>
     </div>
 
@@ -69,6 +73,7 @@
             const disposisiContainer = document.getElementById('printableDisposisi');
             const saveBtn = document.getElementById('saveDisposisiBtn');
             const teruskanSelect = document.getElementById('teruskanKe');
+            const nomorWaInput = document.getElementById('nomorWaTujuan');
             const urlParams = new URLSearchParams(window.location.search);
 
             const surat = {};
@@ -80,6 +85,7 @@
                 disposisiContainer.innerHTML = '<h2>Data surat tidak ditemukan atau tautan tidak valid.</h2>';
                 saveBtn.style.display = 'none';
                 teruskanSelect.parentElement.style.display = 'none';
+                nomorWaInput.parentElement.style.display = 'none';
                 return;
             }
 
@@ -87,17 +93,34 @@
             // Ganti nomor-nomor ini dengan nomor WhatsApp yang sebenarnya
             const daftarKontak = [
                 { nama: 'Staf Pengirim (Admin)', no_wa: '6285349577060' }, 
-                { nama: 'Sekretaris', no_wa: '6281234567891' },
-                { nama: 'Kabid. Kelembagaan & PMD', no_wa: '6281234567892' },
-                { nama: 'Kabid. Pemberdayaan Ekonomi & TTG', no_wa: '6281234567893' },
+                { nama: 'Kepala Dinas', no_wa: '' },
+                { nama: 'Sekretaris', no_wa: '' },
+                { nama: 'Kabid. Kelembagaan & PMD', no_wa: '' },
+                { nama: 'Kabid. Pemberdayaan Ekonomi & TTG', no_wa: '' },
             ];
             
             // Populate dropdown penerusan
             daftarKontak.forEach(kontak => {
                 const option = document.createElement('option');
-                option.value = kontak.no_wa;
+                option.value = kontak.nama;
+                option.dataset.no_wa = kontak.no_wa;
                 option.textContent = kontak.nama;
                 teruskanSelect.appendChild(option);
+            });
+
+            teruskanSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const no_wa = selectedOption.dataset.no_wa;
+                if (no_wa) {
+                    nomorWaInput.value = no_wa;
+                    nomorWaInput.readOnly = true;
+                    nomorWaInput.style.backgroundColor = '#e9ecef';
+                } else {
+                    nomorWaInput.value = '';
+                    nomorWaInput.readOnly = false;
+                    nomorWaInput.style.backgroundColor = '#ffffff';
+                    nomorWaInput.placeholder = 'Masukkan nomor WA manual';
+                }
             });
 
 
@@ -182,11 +205,11 @@
                 const catatan = document.getElementById('disp_catatan').value;
                 const diteruskan = Array.from(document.querySelectorAll('input[name="diteruskan"]:checked')).map(el => el.value).join(', ');
                 const instruksi = Array.from(document.querySelectorAll('input[name="instruksi"]:checked')).map(el => el.value).join(', ');
-                const nomorTujuan = teruskanSelect.value;
+                const nomorTujuan = nomorWaInput.value;
                 const namaTujuan = teruskanSelect.options[teruskanSelect.selectedIndex].text;
 
                 if (!nomorTujuan) {
-                    alert('Silakan pilih tujuan untuk meneruskan disposisi.');
+                    alert('Silakan pilih tujuan dan pastikan nomor WhatsApp terisi.');
                     return;
                 }
 
