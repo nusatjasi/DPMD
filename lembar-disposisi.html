@@ -59,7 +59,7 @@
             <!-- Konten disposisi akan dimuat di sini oleh JavaScript -->
         </div>
         <div class="form-group">
-            <label for="teruskanKe">Teruskan Hasil Disposisi Ke:</label>
+            <label for="teruskanKe">Kirim Balasan Disposisi Ke:</label>
             <select id="teruskanKe">
                 <option value="" disabled selected>Pilih Tujuan</option>
             </select>
@@ -67,11 +67,11 @@
         <div class="form-group">
             <label for="nomorWaTujuan">Nomor WhatsApp Tujuan:</label>
             <div class="input-group">
-                <input type="tel" id="nomorWaTujuan" placeholder="Pilih tujuan atau isi manual">
+                <input type="tel" id="nomorWaTujuan" placeholder="Pilih tujuan untuk mengisi nomor otomatis atau isi manual">
                 <button class="btn" id="pickContactBtn" title="Pilih dari Kontak"><i class="fas fa-address-book"></i></button>
             </div>
         </div>
-        <button class="btn" id="saveDisposisiBtn" style="margin-top: 20px; float: right; background-color: var(--success-color);"><i class="fab fa-whatsapp"></i> Kirim Disposisi Lanjutan</button>
+        <button class="btn" id="saveDisposisiBtn" style="margin-top: 20px; float: right; background-color: var(--success-color);"><i class="fab fa-whatsapp"></i> Kirim Balasan & Selesai</button>
     </div>
 
     <script>
@@ -96,7 +96,6 @@
                 return;
             }
 
-            // --- Daftar Kontak untuk Penerusan ---
             const daftarKontak = [
                 { nama: 'Staf Pengirim (Admin)', no_wa: '6285349577060' }, 
                 { nama: 'Kepala Dinas', no_wa: '' },
@@ -105,7 +104,6 @@
                 { nama: 'Kabid. Pemberdayaan Ekonomi & TTG', no_wa: '' },
             ];
             
-            // Populate dropdown penerusan
             daftarKontak.forEach(kontak => {
                 const option = document.createElement('option');
                 option.value = kontak.nama;
@@ -120,15 +118,12 @@
                 nomorWaInput.value = no_wa || '';
             });
 
-            // --- Contact Picker API Logic ---
             if ('contacts' in navigator && 'select' in navigator.contacts) {
                 pickContactBtn.addEventListener('click', async () => {
                     try {
                         const contacts = await navigator.contacts.select(['tel'], {multiple: false});
                         if (contacts.length > 0) {
-                            let phoneNumber = contacts[0].tel[0];
-                            // Format number to international standard (e.g., 628...)
-                            phoneNumber = phoneNumber.replace(/[^0-9]/g, ''); // Remove non-numeric
+                            let phoneNumber = contacts[0].tel[0].replace(/[^0-9]/g, '');
                             if (phoneNumber.startsWith('08')) {
                                 phoneNumber = '62' + phoneNumber.substring(1);
                             }
@@ -139,9 +134,8 @@
                     }
                 });
             } else {
-                pickContactBtn.style.display = 'none'; // Hide button if API not supported
+                pickContactBtn.style.display = 'none';
             }
-
 
             const pejabatStruktural = ["Sekretaris", "Kabid. Kelembagaan & PMD", "Kabid. Pemberdayaan Ekonomi & TTG", "Analis Kebijakan", "Pranata Komputer"];
             const instruksiList = ["Tanggapan dan saran", "Untuk diketahui", "Proses lebih lanjut", "Selesaikan", "Koordinasikan", "Wakili / Hadiri", "Agendakan", "Arsip"];
@@ -152,10 +146,9 @@
                 return new Date(dateString).toLocaleDateString('id-ID', options);
             }
 
-            // Render the disposition form
             disposisiContainer.innerHTML = `
                 <div class="print-header">
-                    <img src="logo copy.png" alt="Logo KKT" class="logo" onerror="this.src='https://placehold.co/80x80?text=Logo'">
+                    <img src="https://i.ibb.co/zV4syN7/logo-kkt.png" alt="Logo KKT" class="logo" onerror="this.src='https://placehold.co/80x80?text=Logo'">
                     <div class="header-text">
                         <h3>PEMERINTAH KABUPATEN KEPULAUAN TANIMBAR</h3>
                         <h2>DINAS PEMBERDAYAAN MASYARAKAT DAN DESA</h2>
@@ -222,8 +215,8 @@
 
             saveBtn.addEventListener('click', function() {
                 const catatan = document.getElementById('disp_catatan').value;
-                const diteruskan = Array.from(document.querySelectorAll('input[name="diteruskan"]:checked')).map(el => el.value).join(', ');
-                const instruksi = Array.from(document.querySelectorAll('input[name="instruksi"]:checked')).map(el => el.value).join(', ');
+                const diteruskan = Array.from(document.querySelectorAll('input[name="diteruskan"]:checked')).map(el => el.value);
+                const instruksi = Array.from(document.querySelectorAll('input[name="instruksi"]:checked')).map(el => el.value);
                 const nomorTujuan = nomorWaInput.value;
                 const namaTujuan = teruskanSelect.options[teruskanSelect.selectedIndex].text;
 
@@ -232,11 +225,19 @@
                     return;
                 }
 
-                const replyMessage = `*HASIL DISPOSISI (TINDAK LANJUT)* forwarded\n\nYth. Bapak/Ibu ${namaTujuan},\n\nBerikut hasil disposisi dari pimpinan terkait surat masuk:\n\n*Dari:* ${surat.pengirim}\n*No. Surat:* ${surat.noSurat}\n*Perihal:* ${surat.perihal}\n\n-------------------\n*HASIL DISPOSISI:*\n*Catatan:* ${catatan || '-'}\n*Diteruskan kepada:* ${diteruskan || '-'}\n*Instruksi:* ${instruksi || '-'}\n-------------------\n\n${surat.linkSurat ? `*Lihat Lampiran Surat Asli:*\n${surat.linkSurat}\n\n` : ''}Mohon untuk ditindaklanjuti. Terima kasih.`;
+                const path = window.location.pathname.replace(/[^/]*$/, 'suratmasuk.html');
+                const updateUrl = new URL(path, window.location.origin);
+                updateUrl.searchParams.set('action', 'updateDisposisi');
+                updateUrl.searchParams.set('id', surat.id);
+                updateUrl.searchParams.set('catatan', catatan);
+                updateUrl.searchParams.set('diteruskan', diteruskan.join(','));
+                updateUrl.searchParams.set('instruksi', instruksi.join(','));
+                
+                const replyMessage = `*HASIL DISPOSISI* ✅\n\nDisposisi untuk surat No. Agenda ${surat.noAgenda} telah diisi.\n\n*Perihal:* ${surat.perihal}\n\n*Klik tautan di bawah ini untuk menyimpan hasil disposisi ke dalam sistem:*\n${updateUrl.toString()}`;
                 
                 const whatsappUrl = `https://api.whatsapp.com/send?phone=${nomorTujuan}&text=${encodeURIComponent(replyMessage)}`;
                 
-                alert('Disposisi akan diteruskan. Klik OK untuk melanjutkan ke WhatsApp.');
+                alert('Tautan pembaruan disposisi akan dikirim. Klik OK untuk melanjutkan ke WhatsApp.');
                 window.open(whatsappUrl, '_blank');
             });
         });
