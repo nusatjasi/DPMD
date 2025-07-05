@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lembar Disposisi - DPMD Kab. Kepulauan Tanimbar</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Times+New+Roman&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #f4f7fc;
+            --bg-secondary: #ffffff;
+            --secondary-accent: #007bff;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border-color: #dee2e6;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --success-color: #28a745;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-primary); color: var(--text-primary); padding: 20px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px; background: var(--secondary-accent); color: #ffffff; }
+        .btn:hover { opacity: 0.9; }
+        .disposisi-container { max-width: 800px; margin: auto; background: var(--bg-secondary); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px var(--shadow-color); }
+        .print-header { display: flex; align-items: center; justify-content: center; margin-bottom: 15px; border-bottom: 3px solid black; padding-bottom: 10px; gap: 20px; }
+        .print-header .logo { width: 70px; height: auto; }
+        .print-header .header-text { text-align: center; font-family: 'Times New Roman', Times, serif; flex-grow: 1; }
+        .print-header h3, .print-header h2, .print-header p { margin: 0; line-height: 1.4; }
+        .print-header h3 { font-size: 16px; font-weight: bold; }
+        .print-header h2 { font-size: 20px; font-weight: bold; }
+        .print-header p { font-size: 12px; }
+        #disposisi-sheet { border: 2px solid #000; padding: 15px; font-family: 'Times New Roman', Times, serif; color: #000; }
+        #disposisi-sheet h4 { text-align: center; text-decoration: underline; font-size: 16px; margin-bottom: 20px; font-weight: bold; }
+        .disposisi-table { width: 100%; border-collapse: collapse; font-size: 12px; border: 1px solid #000; }
+        .disposisi-table td { border: 1px solid #000; padding: 8px; vertical-align: top; line-height: 1.5; }
+        .disposisi-table .value { font-weight: normal; }
+        .disposisi-table .full-width { height: 80px; }
+        .disposisi-table .hal-value { height: 60px; }
+        .disposisi-table .catatan-value { height: 120px; }
+        .disposisi-table input[type="checkbox"] { margin-right: 5px; vertical-align: middle; }
+        .disposisi-table label { display: block; margin-bottom: 4px; font-weight: normal; }
+        .disposisi-table textarea { width: 100%; height: 100%; border: none; font-family: 'Times New Roman', Times, serif; font-size: 12px; resize: none; padding: 0; background: transparent; }
+        .signature-block { float: right; text-align: center; width: 300px; margin-top: 20px; font-family: 'Times New Roman', Times, serif; font-size: 12px; }
+        .signature-block p { margin: 0; line-height: 1.5; }
+        .signature-block .name { margin-top: 50px; font-weight: bold; text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="disposisi-container">
+        <div id="printableDisposisi">
+            <!-- Konten disposisi akan dimuat di sini oleh JavaScript -->
+        </div>
+        <button class="btn" id="saveDisposisiBtn" style="margin-top: 20px; float: right; background-color: var(--success-color);"><i class="fab fa-whatsapp"></i> Kirim Balasan Disposisi</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const disposisiContainer = document.getElementById('printableDisposisi');
+            const saveBtn = document.getElementById('saveDisposisiBtn');
+            const urlParams = new URLSearchParams(window.location.search);
+
+            const surat = {};
+            for(let [key, value] of urlParams.entries()){
+                surat[key] = decodeURIComponent(value);
+            }
+
+            if (!surat.id) {
+                disposisiContainer.innerHTML = '<h2>Data surat tidak ditemukan atau tautan tidak valid.</h2>';
+                saveBtn.style.display = 'none';
+                return;
+            }
+
+            const pejabatStruktural = ["Sekretaris", "Kabid. Kelembagaan & PMD", "Kabid. Pemberdayaan Ekonomi & TTG", "Analis Kebijakan", "Pranata Komputer"];
+            const instruksiList = ["Tanggapan dan saran", "Untuk diketahui", "Proses lebih lanjut", "Selesaikan", "Koordinasikan", "Wakili / Hadiri", "Agendakan", "Arsip"];
+
+            function formatDate(dateString) {
+                if(!dateString) return '-';
+                const options = { day: '2-digit', month: 'long', year: 'numeric' };
+                return new Date(dateString).toLocaleDateString('id-ID', options);
+            }
+
+            // Render the disposition form
+            disposisiContainer.innerHTML = `
+                <div class="print-header">
+                    <img src="https://i.ibb.co/zV4syN7/logo-kkt.png" alt="Logo KKT" class="logo" onerror="this.src='https://placehold.co/80x80?text=Logo'">
+                    <div class="header-text">
+                        <h3>PEMERINTAH KABUPATEN KEPULAUAN TANIMBAR</h3>
+                        <h2>DINAS PEMBERDAYAAN MASYARAKAT DAN DESA</h2>
+                        <p>Jl. Ir. Soekarno, Kompleks Perkantoran Bupati Kepulauan Tanimbar, Maluku<br>Email : mtb_bpmd@yahoo.co.id/bpmd.kabmtb@gmail.com Kode Pos 97664</p>
+                    </div>
+                </div>
+                <div id="disposisi-sheet">
+                    <h4>LEMBAR DISPOSISI</h4>
+                    <table class="disposisi-table">
+                        <tr>
+                            <td style="width: 50%;">Surat dari : <span class="value">${surat.pengirim || ''}</span></td>
+                            <td>Diterima Tgl : <span class="value">${formatDate(surat.tglTerima)}</span></td>
+                        </tr>
+                        <tr>
+                            <td>No. Surat : <span class="value">${surat.noSurat || ''}</span></td>
+                            <td>No. Agenda : <span class="value">${surat.noAgenda || ''}</span></td>
+                        </tr>
+                        <tr>
+                            <td>Tgl. Surat : <span class="value">${formatDate(surat.tglSurat)}</span></td>
+                            <td>Sifat : 
+                                <div style="display:inline-block; margin-left: 5px;">
+                                    <label><input type="checkbox" name="disp_sifat" value="Sangat Segera" ${surat.sifatSurat === 'Sangat Segera' ? 'checked' : ''}> Sangat segera</label>
+                                    <label><input type="checkbox" name="disp_sifat" value="Penting" ${surat.sifatSurat === 'Penting' ? 'checked' : ''}> Penting</label>
+                                </div>
+                                <div style="display:inline-block; margin-left: 15px;">
+                                    <label><input type="checkbox" name="disp_sifat" value="Segera" ${surat.sifatSurat === 'Segera' ? 'checked' : ''}> Segera</label>
+                                    <label><input type="checkbox" name="disp_sifat" value="Rahasia" ${surat.sifatSurat === 'Rahasia' ? 'checked' : ''}> Rahasia</label>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="hal-value">
+                            <td colspan="2">Hal : <span class="value">${surat.perihal || ''}</span></td>
+                        </tr>
+                        <tr>
+                            <td class="full-width">
+                                <strong>Diteruskan kepada Sdr:</strong>
+                                <div id="disp_diteruskan" style="padding-left: 10px; margin-top: 5px;">
+                                    ${pejabatStruktural.map(j => `<label><input type="checkbox" name="diteruskan" value="${j}"> ${j}</label>`).join('')}
+                                </div>
+                            </td>
+                            <td class="full-width">
+                                <strong>Dengan hormat harap:</strong>
+                                <div id="disp_instruksi" style="padding-left: 10px; margin-top: 5px;">
+                                    ${instruksiList.map(i => `<label><input type="checkbox" name="instruksi" value="${i}"> ${i}</label>`).join('')}
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" class="catatan-value">
+                                <strong>Catatan:</strong>
+                                <textarea id="disp_catatan"></textarea>
+                            </td>
+                        </tr>
+                    </table>
+                    <div class="signature-block">
+                        <p>Plt. Kepala Dinas Pemberdayaan Masyarakat dan Desa<br>Kabupaten Kepulauan Tanimbar,</p>
+                        <p class="name">REINHARD SAINUKA, S.Sos</p>
+                        <p>Pembina Tingkat I</p>
+                        <p>NIP. 19670611 200012 1 004</p>
+                    </div>
+                    <div style="clear: both;"></div>
+                </div>
+            `;
+
+            saveBtn.addEventListener('click', function() {
+                const catatan = document.getElementById('disp_catatan').value;
+                const diteruskan = Array.from(document.querySelectorAll('input[name="diteruskan"]:checked')).map(el => el.value).join(', ');
+                const instruksi = Array.from(document.querySelectorAll('input[name="instruksi"]:checked')).map(el => el.value).join(', ');
+
+                // GANTI NOMOR INI dengan nomor WhatsApp staf/admin yang akan menerima balasan
+                const staffWANumber = '6285349577060'; 
+
+                const replyMessage = `*BALASAN DISPOSISI* ✅\n\n*No. Agenda:* ${surat.noAgenda}\n*Dari:* ${surat.pengirim}\n*Perihal:* ${surat.perihal}\n\n-------------------\n*Catatan:* ${catatan || '-'}\n*Diteruskan kepada:* ${diteruskan || '-'}\n*Instruksi:* ${instruksi || '-'}\n-------------------\n\nDisposisi telah diisi. Terima kasih.`;
+                
+                const whatsappUrl = `https://api.whatsapp.com/send?phone=${staffWANumber}&text=${encodeURIComponent(replyMessage)}`;
+                
+                alert('Disposisi akan dikirim kembali ke staf. Klik OK untuk melanjutkan ke WhatsApp.');
+                window.open(whatsappUrl, '_blank');
+            });
+        });
+    </script>
+</body>
+</html>
