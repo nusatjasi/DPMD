@@ -24,6 +24,12 @@
         .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px; background: var(--secondary-accent); color: #ffffff; }
         .btn:hover { opacity: 0.9; }
         .disposisi-container { max-width: 800px; margin: auto; background: var(--bg-secondary); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px var(--shadow-color); }
+        .form-group { display: flex; flex-direction: column; margin-top: 20px; }
+        .form-group label { margin-bottom: 5px; font-weight: 500; color: var(--text-secondary); }
+        .form-group select, .form-group input { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem; }
+        .input-group { display: flex; gap: 10px; }
+        .input-group input { flex-grow: 1; }
+        .input-group .btn { padding: 10px 15px; }
         .print-header { display: flex; align-items: center; justify-content: center; margin-bottom: 15px; border-bottom: 3px solid black; padding-bottom: 10px; gap: 20px; }
         .print-header .logo { width: 70px; height: auto; }
         .print-header .header-text { text-align: center; font-family: 'Times New Roman', Times, serif; flex-grow: 1; }
@@ -52,13 +58,29 @@
         <div id="printableDisposisi">
             <!-- Konten disposisi akan dimuat di sini oleh JavaScript -->
         </div>
-        <button class="btn" id="saveDisposisiBtn" style="margin-top: 20px; float: right; background-color: var(--success-color);"><i class="fab fa-whatsapp"></i> Kirim Balasan ke Admin</button>
+        <div class="form-group">
+            <label for="teruskanKe">Teruskan Hasil Disposisi Ke:</label>
+            <select id="teruskanKe">
+                <option value="" disabled selected>Pilih Tujuan</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="nomorWaTujuan">Nomor WhatsApp Tujuan:</label>
+            <div class="input-group">
+                <input type="tel" id="nomorWaTujuan" placeholder="Pilih tujuan atau isi manual">
+                <button class="btn" id="pickContactBtn" title="Pilih dari Kontak"><i class="fas fa-address-book"></i></button>
+            </div>
+        </div>
+        <button class="btn" id="saveDisposisiBtn" style="margin-top: 20px; float: right; background-color: var(--success-color);"><i class="fab fa-whatsapp"></i> Kirim Disposisi Lanjutan</button>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const disposisiContainer = document.getElementById('printableDisposisi');
             const saveBtn = document.getElementById('saveDisposisiBtn');
+            const teruskanSelect = document.getElementById('teruskanKe');
+            const nomorWaInput = document.getElementById('nomorWaTujuan');
+            const pickContactBtn = document.getElementById('pickContactBtn');
             const urlParams = new URLSearchParams(window.location.search);
 
             const surat = {};
@@ -69,8 +91,58 @@
             if (!surat.id) {
                 disposisiContainer.innerHTML = '<h2>Data surat tidak ditemukan atau tautan tidak valid.</h2>';
                 saveBtn.style.display = 'none';
+                teruskanSelect.parentElement.style.display = 'none';
+                nomorWaInput.parentElement.style.display = 'none';
                 return;
             }
+
+            // --- Daftar Kontak untuk Penerusan ---
+            // Ganti nomor-nomor ini dengan nomor WhatsApp yang sebenarnya
+            const daftarKontak = [
+                { nama: 'Staf Pengirim (Admin)', no_wa: '6285349577060' }, 
+                { nama: 'Kepala Dinas', no_wa: '6281200000001' },
+                { nama: 'Sekretaris', no_wa: '6281200000002' },
+                { nama: 'Kabid. Kelembagaan & PMD', no_wa: '6281200000003' },
+                { nama: 'Kabid. Pemberdayaan Ekonomi & TTG', no_wa: '6281200000004' },
+                { nama: 'Lainnya (Isi Manual)', no_wa: '' },
+            ];
+            
+            // Populate dropdown penerusan
+            daftarKontak.forEach(kontak => {
+                const option = document.createElement('option');
+                option.value = kontak.nama;
+                option.dataset.no_wa = kontak.no_wa;
+                option.textContent = kontak.nama;
+                teruskanSelect.appendChild(option);
+            });
+
+            teruskanSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const no_wa = selectedOption.dataset.no_wa;
+                nomorWaInput.value = no_wa || '';
+            });
+
+            // --- Contact Picker API Logic ---
+            if ('contacts' in navigator && 'select' in navigator.contacts) {
+                pickContactBtn.addEventListener('click', async () => {
+                    try {
+                        const contacts = await navigator.contacts.select(['tel'], {multiple: false});
+                        if (contacts.length > 0) {
+                            let phoneNumber = contacts[0].tel[0].replace(/[^0-9]/g, '');
+                            if (phoneNumber.startsWith('08')) {
+                                phoneNumber = '62' + phoneNumber.substring(1);
+                            }
+                            nomorWaInput.value = phoneNumber;
+                            teruskanSelect.value = "Lainnya (Isi Manual)";
+                        }
+                    } catch (ex) {
+                        console.error('Gagal mengambil kontak.', ex);
+                    }
+                });
+            } else {
+                pickContactBtn.style.display = 'none'; // Hide button if API not supported
+            }
+
 
             const pejabatStruktural = ["Sekretaris", "Kabid. Kelembagaan & PMD", "Kabid. Pemberdayaan Ekonomi & TTG", "Analis Kebijakan", "Pranata Komputer"];
             const instruksiList = ["Tanggapan dan saran", "Untuk diketahui", "Proses lebih lanjut", "Selesaikan", "Koordinasikan", "Wakili / Hadiri", "Agendakan", "Arsip"];
@@ -153,25 +225,37 @@
                 const catatan = document.getElementById('disp_catatan').value;
                 const diteruskan = Array.from(document.querySelectorAll('input[name="diteruskan"]:checked')).map(el => el.value);
                 const instruksi = Array.from(document.querySelectorAll('input[name="instruksi"]:checked')).map(el => el.value);
-                
-                // GANTI NOMOR INI dengan nomor WhatsApp staf/admin yang akan menerima balasan
-                const staffWANumber = '6285349577060'; 
+                const nomorTujuan = nomorWaInput.value;
+                const namaTujuan = teruskanSelect.options[teruskanSelect.selectedIndex].text;
 
-                // Membuat URL untuk update di halaman suratmasuk.html
-                const path = window.location.pathname.replace(/[^/]*$/, 'suratmasuk.html');
-                const updateUrl = new URL(path, window.location.origin);
-                updateUrl.searchParams.set('action', 'updateDisposisi');
-                updateUrl.searchParams.set('id', surat.id);
-                updateUrl.searchParams.set('catatan', catatan);
-                updateUrl.searchParams.set('diteruskan', diteruskan.join('||')); // Gunakan pemisah unik
-                updateUrl.searchParams.set('instruksi', instruksi.join('||')); // Gunakan pemisah unik
+                if (!nomorTujuan) {
+                    alert('Silakan pilih tujuan dan pastikan nomor WhatsApp terisi.');
+                    return;
+                }
 
-                const replyMessage = `*HASIL DISPOSISI* ✅\n\nDisposisi untuk surat No. Agenda ${surat.noAgenda} telah diisi.\n\n*Perihal:* ${surat.perihal}\n\n-------------------\n*HASIL DISPOSISI:*\n*Catatan:* ${catatan || '-'}\n*Diteruskan kepada:* ${diteruskan.join(', ') || '-'}\n*Instruksi:* ${instruksi.join(', ') || '-'}\n-------------------\n\n*Klik tautan di bawah ini untuk menyimpan hasil disposisi ke dalam sistem:*\n\n${updateUrl.toString()}`;
-                
-                const whatsappUrl = `https://api.whatsapp.com/send?phone=${staffWANumber}&text=${encodeURIComponent(replyMessage)}`;
-                
-                alert('Tautan pembaruan disposisi akan dikirim ke Admin. Klik OK untuk melanjutkan ke WhatsApp.');
-                window.open(whatsappUrl, '_blank');
+                // Cek apakah balasan ditujukan untuk Admin
+                if (namaTujuan === 'Staf Pengirim (Admin)') {
+                    // Membuat URL untuk update di halaman suratmasuk.html
+                    const path = window.location.pathname.replace(/[^/]*$/, 'suratmasuk.html');
+                    const updateUrl = new URL(path, window.location.origin);
+                    updateUrl.searchParams.set('action', 'updateDisposisi');
+                    updateUrl.searchParams.set('id', surat.id);
+                    updateUrl.searchParams.set('catatan', catatan);
+                    updateUrl.searchParams.set('diteruskan', diteruskan.join('||')); // Gunakan pemisah unik
+                    updateUrl.searchParams.set('instruksi', instruksi.join('||')); // Gunakan pemisah unik
+
+                    const replyMessage = `*HASIL DISPOSISI* ✅\n\nDisposisi untuk surat No. Agenda ${surat.noAgenda} telah diisi.\n\n*Perihal:* ${surat.perihal}\n\n-------------------\n*HASIL DISPOSISI:*\n*Catatan:* ${catatan || '-'}\n*Diteruskan kepada:* ${diteruskan.join(', ') || '-'}\n*Instruksi:* ${instruksi.join(', ') || '-'}\n-------------------\n\n*Klik tautan di bawah ini untuk menyimpan hasil disposisi ke dalam sistem:*\n\n${updateUrl.toString()}`;
+                    const whatsappUrl = `https://api.whatsapp.com/send?phone=${nomorTujuan}&text=${encodeURIComponent(replyMessage)}`;
+                    alert('Tautan pembaruan disposisi akan dikirim ke Admin. Klik OK untuk melanjutkan ke WhatsApp.');
+                    window.open(whatsappUrl, '_blank');
+
+                } else {
+                    // Meneruskan ke pimpinan lain
+                    const replyMessage = `*HASIL DISPOSISI (TINDAK LANJUT)* forwarded\n\nYth. Bapak/Ibu ${namaTujuan},\n\nBerikut hasil disposisi dari pimpinan terkait surat masuk:\n\n*Dari:* ${surat.pengirim}\n*No. Surat:* ${surat.noSurat}\n*Perihal:* ${surat.perihal}\n\n-------------------\n*HASIL DISPOSISI:*\n*Catatan:* ${catatan || '-'}\n*Diteruskan kepada:* ${diteruskan.join(', ') || '-'}\n*Instruksi:* ${instruksi.join(', ') || '-'}\n-------------------\n\n${surat.linkSurat ? `*Lihat Lampiran Surat Asli:*\n${surat.linkSurat}\n\n` : ''}Mohon untuk ditindaklanjuti. Terima kasih.`;
+                    const whatsappUrl = `https://api.whatsapp.com/send?phone=${nomorTujuan}&text=${encodeURIComponent(replyMessage)}`;
+                    alert('Disposisi akan diteruskan. Klik OK untuk melanjutkan ke WhatsApp.');
+                    window.open(whatsappUrl, '_blank');
+                }
             });
         });
     </script>
