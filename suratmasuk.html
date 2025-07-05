@@ -86,7 +86,7 @@
         .form-group { display: flex; flex-direction: column; }
         .form-group label { margin-bottom: 5px; font-weight: 500; color: var(--text-secondary); }
         .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; }
-        .modal-footer { text-align: right; margin-top: 25px; }
+        .modal-footer { text-align: right; margin-top: 25px; padding-top: 20px; border-top: 1px solid var(--border-color); }
 
         /* --- Sidebar Toggle Styles --- */
         .sidebar.collapsed { width: 88px; }
@@ -96,60 +96,70 @@
         .main-content.expanded { margin-left: 88px; width: calc(100% - 88px); }
 
         /* --- Custom Notification/Alert --- */
-        .custom-alert-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            justify-content: center;
-            align-items: center;
-            z-index: 3000;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        .custom-alert-overlay.show {
-            display: flex;
-            opacity: 1;
-        }
-        .custom-alert-box {
-            background: var(--bg-secondary);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            text-align: center;
-            width: 90%;
-            max-width: 400px;
-            transform: scale(0.7);
-            opacity: 0;
-            transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-        }
-        .custom-alert-overlay.show .custom-alert-box {
-            transform: scale(1);
-            opacity: 1;
-        }
-        .custom-alert-icon {
-            font-size: 50px;
-            margin-bottom: 20px;
-        }
+        .custom-alert-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); justify-content: center; align-items: center; z-index: 3000; opacity: 0; transition: opacity 0.3s ease; }
+        .custom-alert-overlay.show { display: flex; opacity: 1; }
+        .custom-alert-box { background: var(--bg-secondary); padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; width: 90%; max-width: 400px; transform: scale(0.7); opacity: 0; transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
+        .custom-alert-overlay.show .custom-alert-box { transform: scale(1); opacity: 1; }
+        .custom-alert-icon { font-size: 50px; margin-bottom: 20px; }
         .custom-alert-icon .fa-check-circle { color: var(--success-color); }
         .custom-alert-icon .fa-exclamation-triangle { color: var(--danger-color); }
-        .custom-alert-message {
-            font-size: 1.1rem;
-            color: var(--text-secondary);
-            margin-bottom: 25px;
-            line-height: 1.6;
-        }
-        .custom-alert-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
+        .custom-alert-message { font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 25px; line-height: 1.6; }
+        .custom-alert-buttons { display: flex; justify-content: center; gap: 15px; }
         
+        /* --- STYLES FOR DISPOSITION SHEET --- */
+        .print-header { display: flex; align-items: center; justify-content: center; margin-bottom: 15px; border-bottom: 3px solid black; padding-bottom: 10px; gap: 20px; }
+        .print-header .logo { width: 70px; height: auto; }
+        .print-header .header-text { text-align: center; font-family: 'Times New Roman', Times, serif; flex-grow: 1; }
+        .print-header h3, .print-header h2, .print-header p { margin: 0; line-height: 1.4; color: #000; }
+        .print-header h3 { font-size: 16px; font-weight: bold; }
+        .print-header h2 { font-size: 20px; font-weight: bold; }
+        .print-header p { font-size: 12px; }
+        #disposisi-sheet { border: 2px solid #000; padding: 15px; font-family: 'Times New Roman', Times, serif; color: #000; }
+        #disposisi-sheet h4 { text-align: center; text-decoration: underline; font-size: 16px; margin-bottom: 20px; font-weight: bold; }
+        .disposisi-table { width: 100%; border-collapse: collapse; font-size: 12px; border: 1px solid #000; }
+        .disposisi-table td { border: 1px solid #000; padding: 8px; vertical-align: top; line-height: 1.5; }
+        .disposisi-table .value { font-weight: normal; }
+        .disposisi-table .full-width { height: 80px; }
+        .disposisi-table .hal-value { height: 60px; }
+        .disposisi-table .catatan-value { height: 120px; overflow-wrap: break-word; }
+        .disposisi-table input[type="checkbox"] { margin-right: 5px; vertical-align: middle; }
+        .disposisi-table label { display: block; margin-bottom: 4px; font-weight: normal; }
+        .signature-block { float: right; text-align: center; width: 300px; margin-top: 20px; font-family: 'Times New Roman', Times, serif; font-size: 12px; }
+        .signature-block p { margin: 0; line-height: 1.5; }
+        .signature-block .name { margin-top: 50px; font-weight: bold; text-decoration: underline; }
+
         @media (max-width: 992px) {
             .sidebar { transform: translateX(-100%); }
             .sidebar.active { transform: translateX(0); }
             .main-content { margin-left: 0; width: 100%; }
             .main-content.expanded { margin-left: 0; }
+        }
+
+        /* --- PRINT STYLES --- */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body * {
+                visibility: hidden;
+            }
+            #disposisiContent, #disposisiContent * {
+                visibility: visible;
+            }
+            #disposisiModal .modal-content {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                max-width: 100%;
+                height: auto;
+                overflow: visible;
+                background-color: white;
+                box-shadow: none;
+                border: none;
+                padding: 0;
+                margin: 0;
+            }
         }
     </style>
 </head>
@@ -162,7 +172,7 @@
         </div>
         <div class="sidebar-menu">
             <ul>
-                <li><a href="index.html"><i class="fas fa-home menu-icon icon-color-1"></i> <span>Beranda</span></a></li>
+                <li><a href="./index.html"><i class="fas fa-home menu-icon icon-color-1"></i> <span>Beranda</span></a></li>
                 <li><a href="datapegawai.html"><i class="fas fa-users menu-icon icon-color-2"></i> <span>Data Pegawai</span></a></li>
                 <li class="menu-item-has-children open">
                     <a href="#" class="dropdown-toggle">
@@ -179,7 +189,7 @@
                 <li><a href="./bezeting.html"><i class="fas fa-file-invoice menu-icon icon-color-4"></i> <span>Bezeting Pegawai</span></a></li>
                 <li><a href="#"><i class="fas fa-village menu-icon icon-color-5"></i> <span>Data Desa</span></a></li>
                 <li><a href="#"><i class="fas fa-info-circle menu-icon icon-color-6"></i> <span>Informasi</span></a></li>
-                <li><a href="master.html"><i class="fas fa-database menu-icon icon-color-7"></i> <span>Data Master</span></a></li>
+                <li><a href="./data_master.html"><i class="fas fa-database menu-icon icon-color-7"></i> <span>Data Master</span></a></li>
                 <li class="menu-item-has-children">
                     <a href="#" class="dropdown-toggle">
                          <div><i class="fas fa-clipboard-user menu-icon icon-color-8"></i> <span>Daftar Hadir</span></div>
@@ -193,7 +203,7 @@
             </ul>
         </div>
         <div class="logout-btn no-print">
-            <a href="login.html"><i class="fas fa-sign-out-alt"></i> <span>Keluar</span></a>
+            <a href="#"><i class="fas fa-sign-out-alt"></i> <span>Keluar</span></a>
         </div>
     </div>
     
@@ -299,14 +309,17 @@
         </div>
 
         <!-- Disposisi Modal for Staff -->
-        <div id="disposisiModal" class="modal no-print">
+        <div id="disposisiModal" class="modal">
             <div class="modal-content card">
-                <div class="modal-header">
+                <div class="modal-header no-print">
                     <h3>Detail Disposisi</h3>
                     <span class="close-btn" id="closeDisposisiBtn">&times;</span>
                 </div>
                 <div id="disposisiContent">
                     <!-- Content will be loaded here by JS -->
+                </div>
+                <div class="modal-footer no-print">
+                    <button id="printDisposisiBtn" class="btn"><i class="fas fa-print"></i> Cetak Disposisi</button>
                 </div>
             </div>
         </div>
@@ -495,30 +508,97 @@
                 suratModal.style.display = 'none';
             }
             
+            // --- FUNGSI BARU UNTUK MENAMPILKAN DISPOSISI YANG BISA DICETAK ---
             window.openDisposisiModal = function(suratId) {
                 const surat = suratMasukData.find(s => s.id === suratId);
                 if (!surat) return;
-                
+
                 const disposisiContent = document.getElementById('disposisiContent');
-                const disposisi = surat.disposisi;
+                const disposisi = surat.disposisi || {};
+
+                const pejabatStruktural = ["Sekretaris", "Kabid. Kelembagaan & PMD", "Kabid. Pemberdayaan Ekonomi & TTG", "Analis Kebijakan", "Pranata Komputer"];
+                const instruksiList = ["Tanggapan dan saran", "Untuk diketahui", "Proses lebih lanjut", "Selesaikan", "Koordinasikan", "Wakili / Hadiri", "Agendakan", "Arsip"];
+
+                const createCheckboxList = (list, checkedItems) => {
+                    return list.map(item => `
+                        <label>
+                            <input type="checkbox" ${(checkedItems || []).includes(item) ? 'checked' : ''} disabled> ${item}
+                        </label>
+                    `).join('');
+                };
 
                 let disposisiHTML = `
-                    <p><strong>No. Agenda:</strong> ${surat.noAgenda}</p>
-                    <p><strong>No. Surat:</strong> ${surat.noSurat}</p>
-                    <p><strong>Pengirim:</strong> ${surat.pengirim}</p>
-                    <p><strong>Perihal:</strong> ${surat.perihal}</p>
-                    <hr style="margin: 15px 0;">
+                    <div class="print-header">
+                        <img src="https://i.ibb.co/zV4syN7/logo-kkt.png" alt="Logo KKT" class="logo" onerror="this.src='https://placehold.co/80x80?text=Logo'">
+                        <div class="header-text">
+                            <h3>PEMERINTAH KABUPATEN KEPULAUAN TANIMBAR</h3>
+                            <h2>DINAS PEMBERDAYAAN MASYARAKAT DAN DESA</h2>
+                            <p>Jl. Ir. Soekarno, Kompleks Perkantoran Bupati Kepulauan Tanimbar, Maluku<br>Email : mtb_bpmd@yahoo.co.id/bpmd.kabmtb@gmail.com Kode Pos 97664</p>
+                        </div>
+                    </div>
+                    <div id="disposisi-sheet">
+                        <h4>LEMBAR DISPOSISI</h4>
+                        <table class="disposisi-table">
+                            <tr>
+                                <td style="width: 50%;">Surat dari : <span class="value">${surat.pengirim || ''}</span></td>
+                                <td>Diterima Tgl : <span class="value">${formatDate(surat.tglTerima)}</span></td>
+                            </tr>
+                            <tr>
+                                <td>No. Surat : <span class="value">${surat.noSurat || ''}</span></td>
+                                <td>No. Agenda : <span class="value">${surat.noAgenda || ''}</span></td>
+                            </tr>
+                            <tr>
+                                <td>Tgl. Surat : <span class="value">${formatDate(surat.tglSurat)}</span></td>
+                                <td>Sifat : 
+                                    <div style="display:inline-block; margin-left: 5px;">
+                                        <label><input type="checkbox" disabled ${surat.sifatSurat === 'Sangat Segera' ? 'checked' : ''}> Sangat segera</label>
+                                        <label><input type="checkbox" disabled ${surat.sifatSurat === 'Penting' ? 'checked' : ''}> Penting</label>
+                                    </div>
+                                    <div style="display:inline-block; margin-left: 15px;">
+                                        <label><input type="checkbox" disabled ${surat.sifatSurat === 'Segera' ? 'checked' : ''}> Segera</label>
+                                        <label><input type="checkbox" disabled ${surat.sifatSurat === 'Rahasia' ? 'checked' : ''}> Rahasia</label>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="hal-value">
+                                <td colspan="2">Hal : <span class="value">${surat.perihal || ''}</span></td>
+                            </tr>
+                            <tr>
+                                <td class="full-width">
+                                    <strong>Diteruskan kepada Sdr:</strong>
+                                    <div style="padding-left: 10px; margin-top: 5px;">
+                                        ${createCheckboxList(pejabatStruktural, disposisi.diteruskan)}
+                                    </div>
+                                </td>
+                                <td class="full-width">
+                                    <strong>Dengan hormat harap:</strong>
+                                    <div style="padding-left: 10px; margin-top: 5px;">
+                                        ${createCheckboxList(instruksiList, disposisi.instruksi)}
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="catatan-value">
+                                    <strong>Catatan:</strong><br>
+                                    <p style="padding-left: 5px; white-space: pre-wrap; margin:0;">${disposisi.catatan || 'Tidak ada catatan.'}</p>
+                                </td>
+                            </tr>
+                        </table>
+                        <div class="signature-block">
+                            <p>Plt. Kepala Dinas Pemberdayaan Masyarakat dan Desa<br>Kabupaten Kepulauan Tanimbar,</p>
+                            <p class="name">REINHARD SAINUKA, S.Sos</p>
+                            <p>Pembina Tingkat I</p>
+                            <p>NIP. 19670611 200012 1 004</p>
+                        </div>
+                        <div style="clear: both;"></div>
+                    </div>
                 `;
 
-                if (disposisi && disposisi.catatan) {
-                     disposisiHTML += `
-                        <h4>Hasil Disposisi:</h4>
-                        <p><strong>Catatan:</strong> ${disposisi.catatan}</p>
-                        <p><strong>Diteruskan kepada:</strong> ${disposisi.diteruskan ? disposisi.diteruskan.join(', ') : 'Tidak ada'}</p>
-                        <p><strong>Instruksi:</strong> ${disposisi.instruksi ? disposisi.instruksi.join(', ') : 'Tidak ada'}</p>
-                     `;
+                if (!disposisi.catatan) {
+                    disposisiHTML = `<p><em>Belum ada disposisi untuk surat ini. Menunggu balasan dari pimpinan.</em></p>`;
+                    document.getElementById('printDisposisiBtn').style.display = 'none';
                 } else {
-                    disposisiHTML += `<p><em>Belum ada disposisi. Menunggu balasan dari pimpinan.</em></p>`;
+                    document.getElementById('printDisposisiBtn').style.display = 'inline-flex';
                 }
 
                 disposisiContent.innerHTML = disposisiHTML;
@@ -527,6 +607,10 @@
 
             closeDisposisiBtn.addEventListener('click', () => {
                 disposisiModal.style.display = 'none';
+            });
+            
+            document.getElementById('printDisposisiBtn').addEventListener('click', () => {
+                window.print();
             });
 
             window.deleteSurat = function(suratId) {
@@ -579,7 +663,7 @@
                 const namaTujuan = suratData.tujuanSurat;
 
                 if (no_wa && namaTujuan) {
-                    const path = window.location.pathname.replace(/[^/]*$/, 'lembar-disposisi.html');
+                    const path = window.location.pathname.replace(/[^/]*$/, 'dispo.html');
                     const baseUrl = window.location.origin + path;
                     
                     const params = new URLSearchParams();
@@ -616,8 +700,8 @@
                             suratMasukData[index].disposisi = {};
                         }
                         suratMasukData[index].disposisi.catatan = urlParams.get('catatan');
-                        suratMasukData[index].disposisi.diteruskan = (urlParams.get('diteruskan') || '').split(',');
-                        suratMasukData[index].disposisi.instruksi = (urlParams.get('instruksi') || '').split(',');
+                        suratMasukData[index].disposisi.diteruskan = (urlParams.get('diteruskan') || '').split(',').filter(Boolean);
+                        suratMasukData[index].disposisi.instruksi = (urlParams.get('instruksi') || '').split(',').filter(Boolean);
                         
                         saveData();
                         showAlert(`Disposisi untuk surat dengan No. Agenda ${suratMasukData[index].noAgenda} telah diperbarui!`);
