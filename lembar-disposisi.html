@@ -96,6 +96,7 @@
                 return;
             }
 
+            // Daftar kontak untuk tujuan balasan disposisi
             const daftarKontak = [
                 { nama: 'Staf Pengirim (Admin)', no_wa: '6285349577060' }, 
                 { nama: 'Kepala Dinas', no_wa: '' },
@@ -118,6 +119,7 @@
                 nomorWaInput.value = no_wa || '';
             });
 
+            // Fungsi untuk memilih kontak dari perangkat
             if ('contacts' in navigator && 'select' in navigator.contacts) {
                 pickContactBtn.addEventListener('click', async () => {
                     try {
@@ -146,6 +148,7 @@
                 return new Date(dateString).toLocaleDateString('id-ID', options);
             }
 
+            // Render lembar disposisi
             disposisiContainer.innerHTML = `
                 <div class="print-header">
                     <img src="https://i.ibb.co/zV4syN7/logo-kkt.png" alt="Logo KKT" class="logo" onerror="this.src='https://placehold.co/80x80?text=Logo'">
@@ -213,18 +216,19 @@
                 </div>
             `;
 
+            // Event listener untuk tombol simpan dan kirim
             saveBtn.addEventListener('click', function() {
                 const catatan = document.getElementById('disp_catatan').value;
                 const diteruskan = Array.from(document.querySelectorAll('input[name="diteruskan"]:checked')).map(el => el.value);
                 const instruksi = Array.from(document.querySelectorAll('input[name="instruksi"]:checked')).map(el => el.value);
                 const nomorTujuan = nomorWaInput.value;
-                const namaTujuan = teruskanSelect.options[teruskanSelect.selectedIndex].text;
 
                 if (!nomorTujuan) {
                     alert('Silakan pilih tujuan dan pastikan nomor WhatsApp terisi.');
                     return;
                 }
 
+                // Membuat URL untuk memperbarui data di suratmasuk.html
                 const path = window.location.pathname.replace(/[^/]*$/, 'suratmasuk.html');
                 const updateUrl = new URL(path, window.location.origin);
                 updateUrl.searchParams.set('action', 'updateDisposisi');
@@ -233,8 +237,26 @@
                 updateUrl.searchParams.set('diteruskan', diteruskan.join(','));
                 updateUrl.searchParams.set('instruksi', instruksi.join(','));
                 
-                const replyMessage = `*HASIL DISPOSISI* ✅\n\nDisposisi untuk surat No. Agenda ${surat.noAgenda} telah diisi.\n\n*Perihal:* ${surat.perihal}\n\n*Klik tautan di bawah ini untuk menyimpan hasil disposisi ke dalam sistem:*\n${updateUrl.toString()}`;
-                
+                // --- PERUBAHAN DI SINI ---
+                // Membuat pesan WhatsApp yang lebih detail dan informatif
+                const replyMessage = `*HASIL DISPOSISI* ✅
+-----------------------------------
+*No. Agenda:* ${surat.noAgenda || 'N/A'}
+*Dari:* ${surat.pengirim || 'N/A'}
+*No. Surat:* ${surat.noSurat || 'N/A'}
+*Perihal:* ${surat.perihal || 'N/A'}
+-----------------------------------
+
+*Disposisi dari Pimpinan:*
+*Catatan:* ${catatan || '-'}
+*Diteruskan kepada:* ${diteruskan.length > 0 ? diteruskan.join(', ') : '-'}
+*Instruksi:* ${instruksi.length > 0 ? instruksi.join(', ') : '-'}
+
+-----------------------------------
+*Klik tautan di bawah ini untuk menyimpan hasil disposisi ini secara otomatis ke dalam sistem:*
+${updateUrl.toString()}`;
+                // --- AKHIR PERUBAHAN ---
+
                 const whatsappUrl = `https://api.whatsapp.com/send?phone=${nomorTujuan}&text=${encodeURIComponent(replyMessage)}`;
                 
                 alert('Tautan pembaruan disposisi akan dikirim. Klik OK untuk melanjutkan ke WhatsApp.');
