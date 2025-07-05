@@ -31,6 +31,9 @@
             --warning-color: #ffc107;
             --danger-color: #dc3545;
             --info-color: #17a2b8;
+            --icon-color-1: #007bff; --icon-color-2: #28a745; --icon-color-3: #ffc107;
+            --icon-color-4: #dc3545; --icon-color-5: #17a2b8; --icon-color-6: #6f42c1;
+            --icon-color-7: #fd7e14; --icon-color-8: #20c997;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background-color: var(--bg-primary); color: var(--text-primary); display: flex; min-height: 100vh; overflow-x: hidden; }
@@ -43,7 +46,10 @@
         .sidebar-menu a { display: flex; align-items: center; padding: 15px 25px; color: var(--text-secondary); text-decoration: none; transition: all 0.3s ease; font-size: 0.95rem; margin: 5px 15px; border-radius: 8px; white-space: nowrap; }
         .sidebar-menu a:hover, .sidebar-menu a.active { background-color: var(--secondary-accent); color: #ffffff; transform: translateX(5px); box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3); }
         .sidebar-menu a:hover i, .sidebar-menu a.active i { color: #ffffff !important; }
-        .sidebar-menu a i.menu-icon { margin-right: 15px; width: 20px; text-align: center; font-size: 1.1rem; transition: margin 0.4s ease; color: var(--text-secondary); /* Warna ikon seragam */ }
+        .sidebar-menu a i.menu-icon { margin-right: 15px; width: 20px; text-align: center; font-size: 1.1rem; transition: margin 0.4s ease; }
+        .icon-color-1 { color: var(--icon-color-1); } .icon-color-2 { color: var(--icon-color-2); } .icon-color-3 { color: var(--icon-color-3); }
+        .icon-color-4 { color: var(--icon-color-4); } .icon-color-5 { color: var(--icon-color-5); } .icon-color-6 { color: var(--icon-color-6); }
+        .icon-color-7 { color: var(--icon-color-7); } .icon-color-8 { color: var(--icon-color-8); }
         .dropdown-toggle { justify-content: space-between; }
         .dropdown-icon { transition: transform 0.3s ease; }
         .menu-item-has-children.open > .dropdown-toggle .dropdown-icon { transform: rotate(180deg); }
@@ -135,8 +141,8 @@
             justify-content: center;
             gap: 15px;
         }
-
-        /* Print-specific Styles */
+        
+        /* Print-specific Styles for Disposition Sheet */
         .print-header { display: flex; align-items: center; justify-content: center; margin-bottom: 15px; border-bottom: 3px solid black; padding-bottom: 10px; gap: 20px; }
         .print-header .logo { width: 70px; height: auto; }
         .print-header .header-text { text-align: center; font-family: 'Times New Roman', Times, serif; flex-grow: 1; }
@@ -158,7 +164,7 @@
         .signature-block { float: right; text-align: center; width: 300px; margin-top: 20px; font-family: 'Times New Roman', Times, serif; font-size: 12px; }
         .signature-block p { margin: 0; line-height: 1.5; }
         .signature-block .name { margin-top: 50px; font-weight: bold; text-decoration: underline; }
-        
+
         @media (max-width: 992px) {
             .sidebar { transform: translateX(-100%); }
             .sidebar.active { transform: translateX(0); }
@@ -184,25 +190,27 @@
         </div>
         <div class="sidebar-menu">
             <ul>
-                <li><a href="./index.html"><i class="fas fa-home menu-icon"></i> <span>Beranda</span></a></li>
-                <li><a href="datapegawai.html"><i class="fas fa-users menu-icon"></i> <span>Data Pegawai</span></a></li>
+                <li><a href="./index.html"><i class="fas fa-home menu-icon icon-color-1"></i> <span>Beranda</span></a></li>
+                <li><a href="datapegawai.html"><i class="fas fa-users menu-icon icon-color-2"></i> <span>Data Pegawai</span></a></li>
                 <li class="menu-item-has-children open">
                     <a href="#" class="dropdown-toggle">
-                        <div><i class="fas fa-envelope-open-text menu-icon"></i> <span>Surat</span></div>
+                        <div><i class="fas fa-envelope-open-text menu-icon icon-color-3"></i> <span>Surat</span></div>
                         <i class="fas fa-chevron-down dropdown-icon"></i>
                     </a>
                     <ul class="submenu">
-                        <li><a href="masuksuratcontoh.html" class="active">Surat Masuk</a></li>
+                        <li><a href="suratmasuk.html" class="active">Surat Masuk</a></li>
                         <li><a href="#">Surat Keluar</a></li>
+                        <li><a href="#">Rekap Data Surat</a></li>
+                        <li><a href="#">Contoh Surat</a></li>
                     </ul>
                 </li>
-                <li><a href="./bezeting.html"><i class="fas fa-file-invoice menu-icon"></i> <span>Bezeting Pegawai</span></a></li>
-                <li><a href="#"><i class="fas fa-village menu-icon"></i> <span>Data Desa</span></a></li>
-                <li><a href="#"><i class="fas fa-info-circle menu-icon"></i> <span>Informasi</span></a></li>
-                <li><a href="./data_master.html"><i class="fas fa-database menu-icon"></i> <span>Data Master</span></a></li>
+                <li><a href="./bezeting.html"><i class="fas fa-file-invoice menu-icon icon-color-4"></i> <span>Bezeting Pegawai</span></a></li>
+                <li><a href="#"><i class="fas fa-village menu-icon icon-color-5"></i> <span>Data Desa</span></a></li>
+                <li><a href="#"><i class="fas fa-info-circle menu-icon icon-color-6"></i> <span>Informasi</span></a></li>
+                <li><a href="./data_master.html"><i class="fas fa-database menu-icon icon-color-7"></i> <span>Data Master</span></a></li>
                 <li class="menu-item-has-children">
                     <a href="#" class="dropdown-toggle">
-                         <div><i class="fas fa-clipboard-user menu-icon"></i> <span>Daftar Hadir</span></div>
+                         <div><i class="fas fa-clipboard-user menu-icon icon-color-8"></i> <span>Daftar Hadir</span></div>
                          <i class="fas fa-chevron-down dropdown-icon"></i>
                     </a>
                     <ul class="submenu">
@@ -318,12 +326,15 @@
 
         <!-- Disposisi Modal for Staff -->
         <div id="disposisiModal" class="modal no-print">
-            <div class="modal-content card">
-                <div class="modal-header">
+            <div class="modal-content card print-this">
+                <div class="modal-header no-print">
                     <h3>Lembar Disposisi</h3>
-                    <span class="close-btn" id="closeDisposisiBtn">&times;</span>
+                    <div>
+                         <button class="btn btn-danger" id="closeDisposisiBtn"><i class="fas fa-times"></i> Tutup</button>
+                         <button class="btn" id="printDisposisiBtn"><i class="fas fa-print"></i> Cetak</button>
+                    </div>
                 </div>
-                <div id="disposisiContent">
+                <div id="printableDisposisi">
                     <!-- Content will be loaded here by JS -->
                 </div>
             </div>
@@ -383,6 +394,7 @@
             const disposisiModal = document.getElementById('disposisiModal');
             const closeBtn = suratModal.querySelector('.close-btn');
             const closeDisposisiBtn = document.getElementById('closeDisposisiBtn');
+            const printDisposisiBtn = document.getElementById('printDisposisiBtn');
             const suratForm = document.getElementById('suratForm');
             const suratTableBody = document.getElementById('suratMasukTableBody');
             
@@ -390,10 +402,14 @@
             let currentEditId = null;
             
             const pimpinanData = [
+                { nama: 'Kepala Dinas' },
                 { nama: 'Sekretaris' },
                 { nama: 'Kabid. Kelembagaan & PMD' },
                 { nama: 'Kabid. Pemberdayaan Ekonomi & TTG' },
             ];
+
+            const pejabatStruktural = ["Sekretaris", "Kabid. Kelembagaan & PMD", "Kabid. Pemberdayaan Ekonomi & TTG", "Analis Kebijakan", "Pranata Komputer"];
+            const instruksiList = ["Tanggapan dan saran", "Untuk diketahui", "Proses lebih lanjut", "Selesaikan", "Koordinasikan", "Wakili / Hadiri", "Agendakan", "Arsip"];
 
             // --- Custom Alert Function ---
             const customAlert = document.getElementById('customAlert');
@@ -506,23 +522,88 @@
             }
             
             window.openDisposisiModal = function(suratId) {
+                currentEditId = suratId;
                 const surat = suratMasukData.find(s => s.id === suratId);
                 if (!surat) return;
                 
-                const disposisiContent = document.getElementById('disposisiContent');
-                disposisiContent.innerHTML = `
-                    <p><strong>No. Agenda:</strong> ${surat.noAgenda}</p>
-                    <p><strong>No. Surat:</strong> ${surat.noSurat}</p>
-                    <p><strong>Pengirim:</strong> ${surat.pengirim}</p>
-                    <p><strong>Perihal:</strong> ${surat.perihal}</p>
-                    <hr style="margin: 15px 0;">
-                    <p><em>Disposisi diisi oleh pimpinan melalui tautan WhatsApp.</em></p>
+                const disposisi = surat.disposisi || {};
+                const printableDisposisi = document.getElementById('printableDisposisi');
+
+                printableDisposisi.innerHTML = `
+                    <div class="print-header">
+                        <img src="https://placehold.co/80x80?text=Logo" alt="Logo KKT" class="logo">
+                        <div class="header-text">
+                            <h3>PEMERINTAH KABUPATEN KEPULAUAN TANIMBAR</h3>
+                            <h2>DINAS PEMBERDAYAAN MASYARAKAT DAN DESA</h2>
+                            <p>Jl. Ir. Soekarno, Kompleks Perkantoran Bupati Kepulauan Tanimbar, Maluku<br>Email : mtb_bpmd@yahoo.co.id/bpmd.kabmtb@gmail.com Kode Pos 97664</p>
+                        </div>
+                    </div>
+                    <div id="disposisi-sheet">
+                        <h4>LEMBAR DISPOSISI</h4>
+                        <table class="disposisi-table">
+                            <tr>
+                                <td style="width: 50%;">Surat dari : <span class="value">${surat.pengirim || ''}</span></td>
+                                <td>Diterima Tgl : <span class="value">${formatDate(surat.tglTerima)}</span></td>
+                            </tr>
+                            <tr>
+                                <td>No. Surat : <span class="value">${surat.noSurat || ''}</span></td>
+                                <td>No. Agenda : <span class="value">${surat.noAgenda || ''}</span></td>
+                            </tr>
+                            <tr>
+                                <td>Tgl. Surat : <span class="value">${formatDate(surat.tglSurat)}</span></td>
+                                <td>Sifat : 
+                                    <div style="display:inline-block; margin-left: 5px;">
+                                        <label><input type="checkbox" name="disp_sifat" value="Sangat Segera" ${surat.sifatSurat === 'Sangat Segera' ? 'checked' : ''}> Sangat segera</label>
+                                        <label><input type="checkbox" name="disp_sifat" value="Penting" ${surat.sifatSurat === 'Penting' ? 'checked' : ''}> Penting</label>
+                                    </div>
+                                    <div style="display:inline-block; margin-left: 15px;">
+                                        <label><input type="checkbox" name="disp_sifat" value="Segera" ${surat.sifatSurat === 'Segera' ? 'checked' : ''}> Segera</label>
+                                        <label><input type="checkbox" name="disp_sifat" value="Rahasia" ${surat.sifatSurat === 'Rahasia' ? 'checked' : ''}> Rahasia</label>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="hal-value">
+                                <td colspan="2">Hal : <span class="value">${surat.perihal || ''}</span></td>
+                            </tr>
+                            <tr>
+                                <td class="full-width">
+                                    <strong>Diteruskan kepada Sdr:</strong>
+                                    <div id="disp_diteruskan" style="padding-left: 10px; margin-top: 5px;">
+                                        ${pejabatStruktural.map(j => `<label><input type="checkbox" name="diteruskan" value="${j}" ${disposisi.diteruskan && disposisi.diteruskan.includes(j) ? 'checked' : ''}> ${j}</label>`).join('')}
+                                    </div>
+                                </td>
+                                <td class="full-width">
+                                    <strong>Dengan hormat harap:</strong>
+                                    <div id="disp_instruksi" style="padding-left: 10px; margin-top: 5px;">
+                                        ${instruksiList.map(i => `<label><input type="checkbox" name="instruksi" value="${i}" ${disposisi.instruksi && disposisi.instruksi.includes(i) ? 'checked' : ''}> ${i}</label>`).join('')}
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="catatan-value">
+                                    <strong>Catatan:</strong>
+                                    <textarea id="disp_catatan">${disposisi.catatan || ''}</textarea>
+                                </td>
+                            </tr>
+                        </table>
+                        <div class="signature-block">
+                            <p>Plt. Kepala Dinas Pemberdayaan Masyarakat dan Desa<br>Kabupaten Kepulauan Tanimbar,</p>
+                            <p class="name">REINHARD SAINUKA, S.Sos</p>
+                            <p>Pembina Tingkat I</p>
+                            <p>NIP. 19670611 200012 1 004</p>
+                        </div>
+                        <div style="clear: both;"></div>
+                    </div>
                 `;
                 disposisiModal.style.display = 'flex';
             }
 
             closeDisposisiBtn.addEventListener('click', () => {
                 disposisiModal.style.display = 'none';
+            });
+            
+            printDisposisiBtn.addEventListener('click', () => {
+                window.print();
             });
 
             window.deleteSurat = function(suratId) {
@@ -581,7 +662,9 @@
                     
                     const params = new URLSearchParams();
                     for (const key in suratData) {
-                        params.append(key, encodeURIComponent(suratData[key]));
+                        if (key !== 'disposisi') { 
+                           params.append(key, suratData[key]);
+                        }
                     }
                     const disposisiUrl = `${baseUrl}?${params.toString()}`;
 
