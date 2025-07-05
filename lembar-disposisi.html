@@ -96,7 +96,6 @@
                 return;
             }
 
-            // Daftar kontak untuk tujuan balasan disposisi
             const daftarKontak = [
                 { nama: 'Staf Pengirim (Admin)', no_wa: '6285349577060' }, 
                 { nama: 'Kepala Dinas', no_wa: '' },
@@ -119,7 +118,6 @@
                 nomorWaInput.value = no_wa || '';
             });
 
-            // Fungsi untuk memilih kontak dari perangkat
             if ('contacts' in navigator && 'select' in navigator.contacts) {
                 pickContactBtn.addEventListener('click', async () => {
                     try {
@@ -148,10 +146,9 @@
                 return new Date(dateString).toLocaleDateString('id-ID', options);
             }
 
-            // Render lembar disposisi
             disposisiContainer.innerHTML = `
                 <div class="print-header">
-                    <img src="logo copy.png" alt="Logo KKT" class="logo" onerror="this.src='https://placehold.co/80x80?text=Logo'">
+                    <img src="https://i.ibb.co/zV4syN7/logo-kkt.png" alt="Logo KKT" class="logo" onerror="this.src='https://placehold.co/80x80?text=Logo'">
                     <div class="header-text">
                         <h3>PEMERINTAH KABUPATEN KEPULAUAN TANIMBAR</h3>
                         <h2>DINAS PEMBERDAYAAN MASYARAKAT DAN DESA</h2>
@@ -190,6 +187,9 @@
                                 <strong>Diteruskan kepada Sdr:</strong>
                                 <div id="disp_diteruskan" style="padding-left: 10px; margin-top: 5px;">
                                     ${pejabatStruktural.map(j => `<label><input type="checkbox" name="diteruskan" value="${j}"> ${j}</label>`).join('')}
+                                    <!-- PERUBAHAN DI SINI -->
+                                    <label><input type="checkbox" id="diteruskan_lainnya_check"> Lainnya</label>
+                                    <textarea id="diteruskan_lainnya_text" style="display:none; width: 95%; margin-left: 15px; margin-top: 5px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-family: 'Times New Roman', Times, serif; font-size: 12px;" rows="2" placeholder="Isi tujuan lainnya..."></textarea>
                                 </div>
                             </td>
                             <td class="full-width">
@@ -215,20 +215,35 @@
                     <div style="clear: both;"></div>
                 </div>
             `;
+            
+            // --- LOGIKA BARU UNTUK OPSI LAINNYA ---
+            const diteruskanLainnyaCheck = document.getElementById('diteruskan_lainnya_check');
+            const diteruskanLainnyaText = document.getElementById('diteruskan_lainnya_text');
+            diteruskanLainnyaCheck.addEventListener('change', function() {
+                if (this.checked) {
+                    diteruskanLainnyaText.style.display = 'block';
+                } else {
+                    diteruskanLainnyaText.style.display = 'none';
+                    diteruskanLainnyaText.value = ''; // Hapus isi jika tidak dicentang
+                }
+            });
 
-            // Event listener untuk tombol simpan dan kirim
             saveBtn.addEventListener('click', function() {
                 const catatan = document.getElementById('disp_catatan').value;
                 const diteruskan = Array.from(document.querySelectorAll('input[name="diteruskan"]:checked')).map(el => el.value);
                 const instruksi = Array.from(document.querySelectorAll('input[name="instruksi"]:checked')).map(el => el.value);
                 const nomorTujuan = nomorWaInput.value;
 
+                // --- LOGIKA BARU UNTUK MENGAMBIL DATA DARI OPSI LAINNYA ---
+                if (diteruskanLainnyaCheck.checked && diteruskanLainnyaText.value.trim() !== '') {
+                    diteruskan.push(diteruskanLainnyaText.value.trim());
+                }
+
                 if (!nomorTujuan) {
                     alert('Silakan pilih tujuan dan pastikan nomor WhatsApp terisi.');
                     return;
                 }
 
-                // Membuat URL untuk memperbarui data di suratmasuk.html
                 const path = window.location.pathname.replace(/[^/]*$/, 'suratmasuk.html');
                 const updateUrl = new URL(path, window.location.origin);
                 updateUrl.searchParams.set('action', 'updateDisposisi');
@@ -237,8 +252,6 @@
                 updateUrl.searchParams.set('diteruskan', diteruskan.join(','));
                 updateUrl.searchParams.set('instruksi', instruksi.join(','));
                 
-                // --- PERUBAHAN DI SINI ---
-                // Membuat pesan WhatsApp yang lebih detail dan informatif
                 const replyMessage = `*HASIL DISPOSISI* ✅
 -----------------------------------
 *No. Agenda:* ${surat.noAgenda || 'N/A'}
@@ -255,7 +268,6 @@
 -----------------------------------
 *Klik tautan di bawah ini untuk menyimpan hasil disposisi ini secara otomatis ke dalam sistem:*
 ${updateUrl.toString()}`;
-                // --- AKHIR PERUBAHAN ---
 
                 const whatsappUrl = `https://api.whatsapp.com/send?phone=${nomorTujuan}&text=${encodeURIComponent(replyMessage)}`;
                 
