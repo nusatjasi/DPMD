@@ -316,88 +316,16 @@
             </div>
         </div>
 
-        <!-- Disposisi Modal -->
-        <div id="disposisiModal" class="modal">
-            <div class="modal-content card print-this">
-                <div class="modal-header no-print">
+        <!-- Disposisi Modal for Staff -->
+        <div id="disposisiModal" class="modal no-print">
+            <div class="modal-content card">
+                <div class="modal-header">
                     <h3>Lembar Disposisi</h3>
-                    <div style="display: flex; align-items: flex-end; gap: 20px;">
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <label for="paperSize" style="margin-bottom: 5px; font-size: 0.9rem; color: var(--text-secondary);">Ukuran Kertas</label>
-                            <select id="paperSize" style="padding: 8px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.9rem;">
-                                <option value="A4">A4</option>
-                                <option value="legal">Legal</option>
-                            </select>
-                        </div>
-                        <button class="btn btn-danger" id="closeDisposisiBtn"><i class="fas fa-times"></i> Tutup</button>
-                        <button class="btn" id="printDisposisiBtn"><i class="fas fa-print"></i> Cetak</button>
-                    </div>
+                    <span class="close-btn" id="closeDisposisiBtn">&times;</span>
                 </div>
-
-                <div id="printableDisposisi">
-                    <div class="print-header">
-                        <img src="https://i.ibb.co/zV4syN7/logo-kkt.png" alt="Logo KKT" class="logo" onerror="this.src='https://placehold.co/80x80?text=Logo'">
-                        <div class="header-text">
-                            <h3>PEMERINTAH KABUPATEN KEPULAUAN TANIMBAR</h3>
-                            <h2>DINAS PEMBERDAYAAN MASYARAKAT DAN DESA</h2>
-                            <p>Jl. Ir. Soekarno, Kompleks Perkantoran Bupati Kepulauan Tanimbar, Maluku<br>Email : mtb_bpmd@yahoo.co.id/bpmd.kabmtb@gmail.com Kode Pos 97664</p>
-                        </div>
-                    </div>
-
-                    <div id="disposisi-sheet">
-                        <h4>LEMBAR DISPOSISI</h4>
-                        <table class="disposisi-table">
-                            <tr>
-                                <td style="width: 50%;">Surat dari : <span class="value" id="disp_pengirim"></span></td>
-                                <td>Diterima Tgl : <span class="value" id="disp_tglTerima"></span></td>
-                            </tr>
-                             <tr>
-                                <td>No. Surat : <span class="value" id="disp_noSurat"></span></td>
-                                <td>No. Agenda : <span class="value" id="disp_noAgenda"></span></td>
-                            </tr>
-                             <tr>
-                                <td>Tgl. Surat : <span class="value" id="disp_tglSurat"></span></td>
-                                <td>Sifat : 
-                                    <div style="display:inline-block; margin-left: 5px;">
-                                        <label><input type="checkbox" name="disp_sifat" value="Sangat Segera"> Sangat segera</label>
-                                        <label><input type="checkbox" name="disp_sifat" value="Penting"> Penting</label>
-                                    </div>
-                                     <div style="display:inline-block; margin-left: 15px;">
-                                        <label><input type="checkbox" name="disp_sifat" value="Segera"> Segera</label>
-                                        <label><input type="checkbox" name="disp_sifat" value="Rahasia"> Rahasia</label>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="hal-value">
-                                <td colspan="2">Hal : <span class="value" id="disp_perihal"></span></td>
-                            </tr>
-                            <tr>
-                                <td class="full-width">
-                                    <strong>Diteruskan kepada Sdr:</strong>
-                                    <div id="disp_diteruskan" style="padding-left: 10px; margin-top: 5px;"></div>
-                                </td>
-                                <td class="full-width">
-                                    <strong>Dengan hormat harap:</strong>
-                                    <div id="disp_instruksi" style="padding-left: 10px; margin-top: 5px;"></div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td colspan="2" class="catatan-value">
-                                    <strong>Catatan:</strong>
-                                    <textarea id="disp_catatan"></textarea>
-                                </td>
-                            </tr>
-                        </table>
-                        <div class="signature-block">
-                            <p>Plt. Kepala Dinas Pemberdayaan Masyarakat dan Desa<br>Kabupaten Kepulauan Tanimbar,</p>
-                            <p class="name" id="kadisName">-</p>
-                            <p id="kadisPangkat">-</p>
-                            <p>NIP. <span id="kadisNip">-</span></p>
-                        </div>
-                        <div style="clear: both;"></div>
-                    </div>
+                <div id="disposisiContent">
+                    <!-- Content will be loaded here by JS -->
                 </div>
-                 <button class="btn no-print" id="saveDisposisiBtn" style="margin-top: 20px; float: right;"><i class="fas fa-save"></i> Simpan Perubahan Disposisi</button>
             </div>
         </div>
     </div>
@@ -459,18 +387,13 @@
             const suratTableBody = document.getElementById('suratMasukTableBody');
             
             let suratMasukData = JSON.parse(localStorage.getItem('suratMasukDataDPMD')) || [];
-            let pegawaiData = JSON.parse(localStorage.getItem('pegawaiDataDPMD')) || [];
             let currentEditId = null;
-            let isDisposisiViewMode = false;
             
             const pimpinanData = [
                 { nama: 'Sekretaris' },
                 { nama: 'Kabid. Kelembagaan & PMD' },
                 { nama: 'Kabid. Pemberdayaan Ekonomi & TTG' },
             ];
-
-            const pejabatStruktural = ["Sekretaris", "Kabid. Kelembagaan & PMD", "Kabid. Pemberdayaan Ekonomi & TTG", "Analis Kebijakan", "Pranata Komputer"];
-            const instruksiList = ["Tanggapan dan saran", "Untuk diketahui", "Proses lebih lanjut", "Selesaikan", "Koordinasikan", "Wakili / Hadiri", "Agendakan", "Arsip"];
 
             // --- Custom Alert Function ---
             const customAlert = document.getElementById('customAlert');
@@ -530,7 +453,7 @@
                             ${surat.linkSurat ? `<a href="${surat.linkSurat}" target="_blank" class="btn" title="Lihat File" style="padding: 8px 12px; font-size: 0.9rem; background-color: #28a745; gap: 0;"><i class="fas fa-eye"></i></a>` : 'Tidak ada'}
                         </td>
                         <td style="display: flex; flex-wrap: wrap; gap: 5px;">
-                            <button class="btn" onclick="openDisposisi('${surat.id}')" title="Disposisi" style="padding: 8px 12px; font-size: 0.9rem; gap: 0;"><i class="fas fa-file-alt"></i></button>
+                            <button class="btn" onclick="openDisposisiModal('${surat.id}')" title="Disposisi" style="padding: 8px 12px; font-size: 0.9rem; gap: 0;"><i class="fas fa-file-alt"></i></button>
                             <button class="btn" onclick="openModal('${surat.id}')" title="Edit" style="padding: 8px 12px; font-size: 0.9rem; background-color: #ffc107; gap: 0;"><i class="fas fa-edit"></i></button>
                             <button class="btn btn-danger" onclick="deleteSurat('${surat.id}')" title="Hapus" style="padding: 8px 12px; font-size: 0.9rem; gap: 0;"><i class="fas fa-trash"></i></button>
                         </td>
@@ -582,73 +505,26 @@
                 suratModal.style.display = 'none';
             }
             
-            function openDisposisi(suratOrId) {
-                let surat;
-                if (typeof suratOrId === 'string') {
-                    currentEditId = suratOrId;
-                    surat = suratMasukData.find(s => s.id === suratOrId);
-                } else {
-                    surat = suratOrId;
-                    currentEditId = surat.id; // Store ID for potential saving
-                }
-
-                if (!surat) {
-                    showAlert('Data surat tidak ditemukan. Mungkin tautan sudah kedaluwarsa.', 'delete');
-                    return;
-                }
-
-                const disposisi = surat.disposisi || {};
+            window.openDisposisiModal = function(suratId) {
+                const surat = suratMasukData.find(s => s.id === suratId);
+                if (!surat) return;
                 
-                document.getElementById('disp_pengirim').textContent = surat.pengirim;
-                document.getElementById('disp_noSurat').textContent = surat.noSurat;
-                document.getElementById('disp_tglSurat').textContent = formatDate(surat.tglSurat);
-                document.getElementById('disp_tglTerima').textContent = formatDate(surat.tglTerima);
-                document.getElementById('disp_noAgenda').textContent = surat.noAgenda;
-                document.getElementById('disp_perihal').textContent = surat.perihal;
-                document.getElementById('disp_catatan').value = disposisi.catatan || '';
-
-                document.querySelectorAll('input[name="disp_sifat"]').forEach(cb => {
-                    cb.checked = (cb.value === surat.sifatSurat);
-                });
-
-                const diteruskanContainer = document.getElementById('disp_diteruskan');
-                diteruskanContainer.innerHTML = '';
-                pejabatStruktural.forEach(jabatan => {
-                    const isChecked = disposisi.diteruskan && disposisi.diteruskan.includes(jabatan);
-                    diteruskanContainer.innerHTML += `<label><input type="checkbox" name="diteruskan" value="${jabatan}" ${isChecked ? 'checked' : ''}> ${jabatan}</label>`;
-                });
-                
-                const instruksiContainer = document.getElementById('disp_instruksi');
-                instruksiContainer.innerHTML = '';
-                instruksiList.forEach(instruksi => {
-                    const isChecked = disposisi.instruksi && disposisi.instruksi.includes(instruksi);
-                    instruksiContainer.innerHTML += `<label><input type="checkbox" name="instruksi" value="${instruksi}" ${isChecked ? 'checked' : ''}> ${instruksi}</label>`;
-                });
-                
-                const kepalaDinas = pegawaiData.find(p => p.jabatan === "Kepala Dinas");
-                if(kepalaDinas) {
-                    document.getElementById('kadisName').textContent = kepalaDinas.nama;
-                    document.getElementById('kadisPangkat').textContent = kepalaDinas.pangkat;
-                    document.getElementById('kadisNip').textContent = kepalaDinas.nip;
-                } else {
-                    document.getElementById('kadisName').textContent = "REINHARD SAINUKA, S.Sos";
-                    document.getElementById('kadisPangkat').textContent = "Pembina Tingkat I";
-                    document.getElementById('kadisNip').textContent = "19670611 200012 1 004";
-                }
-
+                const disposisiContent = document.getElementById('disposisiContent');
+                disposisiContent.innerHTML = `
+                    <p><strong>No. Agenda:</strong> ${surat.noAgenda}</p>
+                    <p><strong>No. Surat:</strong> ${surat.noSurat}</p>
+                    <p><strong>Pengirim:</strong> ${surat.pengirim}</p>
+                    <p><strong>Perihal:</strong> ${surat.perihal}</p>
+                    <hr style="margin: 15px 0;">
+                    <p><em>Disposisi diisi oleh pimpinan melalui tautan WhatsApp.</em></p>
+                `;
                 disposisiModal.style.display = 'flex';
             }
-            window.openDisposisi = openDisposisi;
 
+            closeDisposisiBtn.addEventListener('click', () => {
+                disposisiModal.style.display = 'none';
+            });
 
-            function closeDisposisi() {
-                if (isDisposisiViewMode) {
-                    showAlert('Terima kasih. Silakan tutup jendela ini.');
-                } else {
-                    disposisiModal.style.display = 'none';
-                }
-            }
-            
             window.deleteSurat = function(suratId) {
                 showAlert('Apakah Anda yakin ingin menghapus surat ini? Tindakan ini tidak dapat dibatalkan.', 'delete', () => {
                     const index = suratMasukData.findIndex(s => s.id === suratId);
@@ -656,51 +532,10 @@
                         suratMasukData.splice(index, 1);
                         saveData();
                         showAlert('Surat berhasil dihapus!', 'success', () => {
-                            window.location.href = 'suratmasuk.html';
+                            window.location.reload();
                         });
                     }
                 });
-            }
-
-            function saveDisposisi() {
-                const suratIndex = suratMasukData.findIndex(s => s.id === currentEditId);
-                
-                if (isDisposisiViewMode) {
-                    // Mode Pimpinan: Kirim balasan WA, jangan simpan ke local storage
-                    const catatan = document.getElementById('disp_catatan').value;
-                    const diteruskan = Array.from(document.querySelectorAll('#disp_diteruskan input:checked')).map(el => el.value).join(', ');
-                    const instruksi = Array.from(document.querySelectorAll('#disp_instruksi input:checked')).map(el => el.value).join(', ');
-
-                    const noAgenda = document.getElementById('disp_noAgenda').textContent;
-                    const staffWANumber = '6281234567890'; // GANTI DENGAN NOMOR WA STAF/ADMIN
-
-                    const replyMessage = `*BALASAN DISPOSISI* ✅\n\n*No. Agenda:* ${noAgenda}\n\n*Catatan:* ${catatan}\n*Diteruskan kepada:* ${diteruskan}\n*Instruksi:* ${instruksi}\n\nDisposisi telah diisi.`;
-                    const whatsappUrl = `https://api.whatsapp.com/send?phone=${staffWANumber}&text=${encodeURIComponent(replyMessage)}`;
-                    
-                    showAlert('Disposisi akan dikirim kembali ke staf. Klik OK untuk melanjutkan.', 'success', () => {
-                        window.open(whatsappUrl, '_blank');
-                    });
-                    return;
-                }
-                
-                // Mode Staf: Simpan ke local storage
-                if (suratIndex === -1) return;
-                const surat = suratMasukData[suratIndex];
-                if (!surat.disposisi) surat.disposisi = {};
-
-                const checkedSifat = document.querySelector('input[name="disp_sifat"]:checked');
-                if (checkedSifat) {
-                    surat.sifatSurat = checkedSifat.value;
-                }
-
-                surat.disposisi.catatan = document.getElementById('disp_catatan').value;
-                surat.disposisi.diteruskan = Array.from(document.querySelectorAll('#disp_diteruskan input:checked')).map(el => el.value);
-                surat.disposisi.instruksi = Array.from(document.querySelectorAll('#disp_instruksi input:checked')).map(el => el.value);
-                
-                saveData();
-                showAlert('Disposisi berhasil disimpan!');
-                renderSuratTable();
-                closeDisposisi();
             }
 
             function saveData() {
@@ -741,10 +576,13 @@
                 const namaTujuan = suratData.tujuanSurat;
 
                 if (no_wa && namaTujuan) {
-                    const path = window.location.pathname.replace(/[^/]*$/, 'suratmasuk.html');
+                    const path = window.location.pathname.replace(/[^/]*$/, 'lembar-disposisi.html');
                     const baseUrl = window.location.origin + path;
                     
-                    const params = new URLSearchParams({ view: 'disposisi', ...suratData });
+                    const params = new URLSearchParams();
+                    for (const key in suratData) {
+                        params.append(key, encodeURIComponent(suratData[key]));
+                    }
                     const disposisiUrl = `${baseUrl}?${params.toString()}`;
 
                     let message = `*SURAT MASUK BARU* 📨\n\nYth. Bapak/Ibu ${namaTujuan},\n\nAda surat masuk baru yang memerlukan perhatian Bapak/Ibu.\n\n*Dari:* ${suratData.pengirim}\n*No. Surat:* ${suratData.noSurat}\n*Perihal:* ${suratData.perihal}\n\n`;
@@ -764,29 +602,10 @@
 
             addSuratBtn.addEventListener('click', () => openModal());
             closeBtn.addEventListener('click', closeModal);
-            closeDisposisiBtn.addEventListener('click', closeDisposisi);
-            document.getElementById('saveDisposisiBtn').addEventListener('click', saveDisposisi);
             
-            const printBtn = document.getElementById('printDisposisiBtn');
-            printBtn.addEventListener('click', () => {
-                const paperSize = document.getElementById('paperSize').value;
-                const style = document.createElement('style');
-                style.id = 'print-style-override';
-                style.innerHTML = `@page { size: ${paperSize} portrait; margin: 20mm; }`;
-                document.head.appendChild(style);
-                window.print();
-            });
-
-            window.addEventListener('afterprint', () => {
-                const styleOverride = document.getElementById('print-style-override');
-                if (styleOverride) {
-                    styleOverride.remove();
-                }
-            });
-
             window.onclick = function(event) {
                 if (event.target == suratModal) closeModal();
-                if (event.target == disposisiModal) closeDisposisi();
+                if (event.target == disposisiModal) disposisiModal.style.display = 'none';
             }
             
             const formatDate = (dateString) => {
@@ -795,32 +614,8 @@
                 return new Date(dateString).toLocaleDateString('id-ID', options);
             }
 
-            // --- Check for disposisi link on page load ---
-            function initializePage() {
-                const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.get('view') === 'disposisi') {
-                    isDisposisiViewMode = true;
-                    document.getElementById('mainContent').style.display = 'none';
-                    document.getElementById('sidebar').style.display = 'none';
-                    
-                    const suratFromUrl = {};
-                    for(let [key, value] of urlParams.entries()){
-                        suratFromUrl[key] = value;
-                    }
-                    
-                    // The disposisi button needs to send a WA reply
-                    const saveBtn = document.getElementById('saveDisposisiBtn');
-                    saveBtn.innerHTML = '<i class="fab fa-whatsapp"></i> Kirim Balasan Disposisi';
-                    saveBtn.style.backgroundColor = 'var(--success-color)';
-
-                    openDisposisi(suratFromUrl);
-                } else {
-                    renderSuratTable();
-                }
-            }
-
             // Initial Load
-            initializePage();
+            renderSuratTable();
         });
     </script>
 </body>
