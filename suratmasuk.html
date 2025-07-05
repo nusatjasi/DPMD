@@ -72,6 +72,9 @@
         table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border-color); }
         th { background-color: var(--bg-primary); color: var(--text-secondary); }
+        .status { padding: 5px 10px; border-radius: 15px; color: white; font-size: 0.8rem; font-weight: 500; text-align: center; }
+        .status-disposisi { background-color: var(--success-color); }
+        .status-proses { background-color: var(--info-color); }
         
         /* Modal Styling */
         .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
@@ -142,42 +145,11 @@
             gap: 15px;
         }
         
-        /* Print-specific Styles for Disposition Sheet */
-        .print-header { display: flex; align-items: center; justify-content: center; margin-bottom: 15px; border-bottom: 3px solid black; padding-bottom: 10px; gap: 20px; }
-        .print-header .logo { width: 70px; height: auto; }
-        .print-header .header-text { text-align: center; font-family: 'Times New Roman', Times, serif; flex-grow: 1; }
-        .print-header h3, .print-header h2, .print-header p { margin: 0; line-height: 1.4; }
-        .print-header h3 { font-size: 16px; font-weight: bold; }
-        .print-header h2 { font-size: 20px; font-weight: bold; }
-        .print-header p { font-size: 12px; }
-        #disposisi-sheet { border: 2px solid #000; padding: 15px; font-family: 'Times New Roman', Times, serif; color: #000; }
-        #disposisi-sheet h4 { text-align: center; text-decoration: underline; font-size: 16px; margin-bottom: 20px; font-weight: bold; }
-        .disposisi-table { width: 100%; border-collapse: collapse; font-size: 12px; border: 1px solid #000; }
-        .disposisi-table td { border: 1px solid #000; padding: 8px; vertical-align: top; line-height: 1.5; }
-        .disposisi-table .value { font-weight: normal; }
-        .disposisi-table .full-width { height: 80px; }
-        .disposisi-table .hal-value { height: 60px; }
-        .disposisi-table .catatan-value { height: 120px; }
-        .disposisi-table input[type="checkbox"] { margin-right: 5px; vertical-align: middle; }
-        .disposisi-table label { display: block; margin-bottom: 4px; font-weight: normal; }
-        .disposisi-table textarea { width: 100%; height: 100%; border: none; font-family: 'Times New Roman', Times, serif; font-size: 12px; resize: none; padding: 0; background: transparent; }
-        .signature-block { float: right; text-align: center; width: 300px; margin-top: 20px; font-family: 'Times New Roman', Times, serif; font-size: 12px; }
-        .signature-block p { margin: 0; line-height: 1.5; }
-        .signature-block .name { margin-top: 50px; font-weight: bold; text-decoration: underline; }
-
         @media (max-width: 992px) {
             .sidebar { transform: translateX(-100%); }
             .sidebar.active { transform: translateX(0); }
             .main-content { margin-left: 0; width: 100%; }
             .main-content.expanded { margin-left: 0; }
-        }
-        @media print {
-            body { background: white !important; color: black !important; font-family: 'Times New Roman', Times, serif; margin: 0; padding: 0;}
-            .no-print, .sidebar, .header, .card:not(.print-this), .modal:not(#disposisiModal) { display: none !important; }
-            .main-content { margin-left: 0 !important; width: 100% !important; padding: 0 !important; }
-            #disposisiModal { display: block !important; position: static !important; background: transparent !important; }
-            .modal-content { box-shadow: none !important; border: none !important; padding: 0 !important; max-width: 100% !important; }
-            #printableDisposisi { display: block !important; padding-top: 5mm; }
         }
     </style>
 </head>
@@ -190,7 +162,7 @@
         </div>
         <div class="sidebar-menu">
             <ul>
-                <li><a href="./index.html"><i class="fas fa-home menu-icon icon-color-1"></i> <span>Beranda</span></a></li>
+                <li><a href="index.html"><i class="fas fa-home menu-icon icon-color-1"></i> <span>Beranda</span></a></li>
                 <li><a href="datapegawai.html"><i class="fas fa-users menu-icon icon-color-2"></i> <span>Data Pegawai</span></a></li>
                 <li class="menu-item-has-children open">
                     <a href="#" class="dropdown-toggle">
@@ -204,10 +176,10 @@
                         <li><a href="#">Contoh Surat</a></li>
                     </ul>
                 </li>
-                <li><a href="bezeting.html"><i class="fas fa-file-invoice menu-icon icon-color-4"></i> <span>Bezeting Pegawai</span></a></li>
+                <li><a href="./bezeting.html"><i class="fas fa-file-invoice menu-icon icon-color-4"></i> <span>Bezeting Pegawai</span></a></li>
                 <li><a href="#"><i class="fas fa-village menu-icon icon-color-5"></i> <span>Data Desa</span></a></li>
                 <li><a href="#"><i class="fas fa-info-circle menu-icon icon-color-6"></i> <span>Informasi</span></a></li>
-                <li><a href="./data_master.html"><i class="fas fa-database menu-icon icon-color-7"></i> <span>Data Master</span></a></li>
+                <li><a href="master.html"><i class="fas fa-database menu-icon icon-color-7"></i> <span>Data Master</span></a></li>
                 <li class="menu-item-has-children">
                     <a href="#" class="dropdown-toggle">
                          <div><i class="fas fa-clipboard-user menu-icon icon-color-8"></i> <span>Daftar Hadir</span></div>
@@ -247,6 +219,8 @@
                             <th>Nomor Surat</th>
                             <th>Pengirim</th>
                             <th>Perihal</th>
+                            <th>Status Surat</th>
+                            <th>Hasil Disposisi</th>
                             <th>File</th>
                             <th>Aksi</th>
                         </tr>
@@ -326,15 +300,12 @@
 
         <!-- Disposisi Modal for Staff -->
         <div id="disposisiModal" class="modal no-print">
-            <div class="modal-content card print-this">
-                <div class="modal-header no-print">
-                    <h3>Lembar Disposisi</h3>
-                    <div>
-                         <button class="btn btn-danger" id="closeDisposisiBtn"><i class="fas fa-times"></i> Tutup</button>
-                         <button class="btn" id="printDisposisiBtn"><i class="fas fa-print"></i> Cetak</button>
-                    </div>
+            <div class="modal-content card">
+                <div class="modal-header">
+                    <h3>Detail Disposisi</h3>
+                    <span class="close-btn" id="closeDisposisiBtn">&times;</span>
                 </div>
-                <div id="printableDisposisi">
+                <div id="disposisiContent">
                     <!-- Content will be loaded here by JS -->
                 </div>
             </div>
@@ -394,7 +365,6 @@
             const disposisiModal = document.getElementById('disposisiModal');
             const closeBtn = suratModal.querySelector('.close-btn');
             const closeDisposisiBtn = document.getElementById('closeDisposisiBtn');
-            const printDisposisiBtn = document.getElementById('printDisposisiBtn');
             const suratForm = document.getElementById('suratForm');
             const suratTableBody = document.getElementById('suratMasukTableBody');
             
@@ -407,9 +377,6 @@
                 { nama: 'Kabid. Kelembagaan & PMD' },
                 { nama: 'Kabid. Pemberdayaan Ekonomi & TTG' },
             ];
-
-            const pejabatStruktural = ["Sekretaris", "Kabid. Kelembagaan & PMD", "Kabid. Pemberdayaan Ekonomi & TTG", "Analis Kebijakan", "Pranata Komputer"];
-            const instruksiList = ["Tanggapan dan saran", "Untuk diketahui", "Proses lebih lanjut", "Selesaikan", "Koordinasikan", "Wakili / Hadiri", "Agendakan", "Arsip"];
 
             // --- Custom Alert Function ---
             const customAlert = document.getElementById('customAlert');
@@ -451,7 +418,7 @@
             function renderSuratTable() {
                 suratTableBody.innerHTML = '';
                 if(suratMasukData.length === 0) {
-                    suratTableBody.innerHTML = `<tr><td colspan="7" style="text-align: center;">Belum ada data surat masuk.</td></tr>`;
+                    suratTableBody.innerHTML = `<tr><td colspan="9" style="text-align: center;">Belum ada data surat masuk.</td></tr>`;
                     return;
                 }
                 const sortedData = suratMasukData.sort((a, b) => parseInt(b.noAgenda) - parseInt(a.noAgenda));
@@ -459,17 +426,24 @@
                 sortedData.forEach(surat => {
                     const row = suratTableBody.insertRow();
                     row.dataset.id = surat.id;
+                    const hasDisposisi = surat.disposisi && surat.disposisi.catatan;
+
                     row.innerHTML = `
                         <td>${surat.noAgenda}</td>
                         <td>${surat.tujuanSurat || '-'}</td>
                         <td>${surat.noSurat}</td>
                         <td>${surat.pengirim}</td>
-                        <td>${surat.perihal.substring(0, 30)}${surat.perihal.length > 30 ? '...' : ''}</td>
+                        <td>${surat.perihal.substring(0, 25)}${surat.perihal.length > 25 ? '...' : ''}</td>
+                        <td>
+                            ${hasDisposisi ? '<span class="status status-disposisi">Sudah Didisposisi</span>' : '<span class="status status-proses">Terkirim</span>'}
+                        </td>
+                        <td style="text-align: center;">
+                            ${hasDisposisi ? `<button class="btn" onclick="openDisposisiModal('${surat.id}')" title="Lihat Hasil Disposisi" style="padding: 8px 12px; font-size: 0.9rem; background-color: #6f42c1; gap: 0;"><i class="fas fa-eye"></i></button>` : '-'}
+                        </td>
                         <td style="text-align: center;">
                             ${surat.linkSurat ? `<a href="${surat.linkSurat}" target="_blank" class="btn" title="Lihat File" style="padding: 8px 12px; font-size: 0.9rem; background-color: #28a745; gap: 0;"><i class="fas fa-eye"></i></a>` : 'Tidak ada'}
                         </td>
                         <td style="display: flex; flex-wrap: wrap; gap: 5px;">
-                            <button class="btn" onclick="openDisposisiModal('${surat.id}')" title="Disposisi" style="padding: 8px 12px; font-size: 0.9rem; gap: 0;"><i class="fas fa-file-alt"></i></button>
                             <button class="btn" onclick="openModal('${surat.id}')" title="Edit" style="padding: 8px 12px; font-size: 0.9rem; background-color: #ffc107; gap: 0;"><i class="fas fa-edit"></i></button>
                             <button class="btn btn-danger" onclick="deleteSurat('${surat.id}')" title="Hapus" style="padding: 8px 12px; font-size: 0.9rem; gap: 0;"><i class="fas fa-trash"></i></button>
                         </td>
@@ -522,88 +496,37 @@
             }
             
             window.openDisposisiModal = function(suratId) {
-                currentEditId = suratId;
                 const surat = suratMasukData.find(s => s.id === suratId);
                 if (!surat) return;
                 
-                const disposisi = surat.disposisi || {};
-                const printableDisposisi = document.getElementById('printableDisposisi');
+                const disposisiContent = document.getElementById('disposisiContent');
+                const disposisi = surat.disposisi;
 
-                printableDisposisi.innerHTML = `
-                    <div class="print-header">
-                        <img src="https://placehold.co/80x80?text=Logo" alt="Logo KKT" class="logo">
-                        <div class="header-text">
-                            <h3>PEMERINTAH KABUPATEN KEPULAUAN TANIMBAR</h3>
-                            <h2>DINAS PEMBERDAYAAN MASYARAKAT DAN DESA</h2>
-                            <p>Jl. Ir. Soekarno, Kompleks Perkantoran Bupati Kepulauan Tanimbar, Maluku<br>Email : mtb_bpmd@yahoo.co.id/bpmd.kabmtb@gmail.com Kode Pos 97664</p>
-                        </div>
-                    </div>
-                    <div id="disposisi-sheet">
-                        <h4>LEMBAR DISPOSISI</h4>
-                        <table class="disposisi-table">
-                            <tr>
-                                <td style="width: 50%;">Surat dari : <span class="value">${surat.pengirim || ''}</span></td>
-                                <td>Diterima Tgl : <span class="value">${formatDate(surat.tglTerima)}</span></td>
-                            </tr>
-                            <tr>
-                                <td>No. Surat : <span class="value">${surat.noSurat || ''}</span></td>
-                                <td>No. Agenda : <span class="value">${surat.noAgenda || ''}</span></td>
-                            </tr>
-                            <tr>
-                                <td>Tgl. Surat : <span class="value">${formatDate(surat.tglSurat)}</span></td>
-                                <td>Sifat : 
-                                    <div style="display:inline-block; margin-left: 5px;">
-                                        <label><input type="checkbox" name="disp_sifat" value="Sangat Segera" ${surat.sifatSurat === 'Sangat Segera' ? 'checked' : ''}> Sangat segera</label>
-                                        <label><input type="checkbox" name="disp_sifat" value="Penting" ${surat.sifatSurat === 'Penting' ? 'checked' : ''}> Penting</label>
-                                    </div>
-                                    <div style="display:inline-block; margin-left: 15px;">
-                                        <label><input type="checkbox" name="disp_sifat" value="Segera" ${surat.sifatSurat === 'Segera' ? 'checked' : ''}> Segera</label>
-                                        <label><input type="checkbox" name="disp_sifat" value="Rahasia" ${surat.sifatSurat === 'Rahasia' ? 'checked' : ''}> Rahasia</label>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="hal-value">
-                                <td colspan="2">Hal : <span class="value">${surat.perihal || ''}</span></td>
-                            </tr>
-                            <tr>
-                                <td class="full-width">
-                                    <strong>Diteruskan kepada Sdr:</strong>
-                                    <div id="disp_diteruskan" style="padding-left: 10px; margin-top: 5px;">
-                                        ${pejabatStruktural.map(j => `<label><input type="checkbox" name="diteruskan" value="${j}" ${disposisi.diteruskan && disposisi.diteruskan.includes(j) ? 'checked' : ''}> ${j}</label>`).join('')}
-                                    </div>
-                                </td>
-                                <td class="full-width">
-                                    <strong>Dengan hormat harap:</strong>
-                                    <div id="disp_instruksi" style="padding-left: 10px; margin-top: 5px;">
-                                        ${instruksiList.map(i => `<label><input type="checkbox" name="instruksi" value="${i}" ${disposisi.instruksi && disposisi.instruksi.includes(i) ? 'checked' : ''}> ${i}</label>`).join('')}
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td colspan="2" class="catatan-value">
-                                    <strong>Catatan:</strong>
-                                    <textarea id="disp_catatan">${disposisi.catatan || ''}</textarea>
-                                </td>
-                            </tr>
-                        </table>
-                        <div class="signature-block">
-                            <p>Plt. Kepala Dinas Pemberdayaan Masyarakat dan Desa<br>Kabupaten Kepulauan Tanimbar,</p>
-                            <p class="name">REINHARD SAINUKA, S.Sos</p>
-                            <p>Pembina Tingkat I</p>
-                            <p>NIP. 19670611 200012 1 004</p>
-                        </div>
-                        <div style="clear: both;"></div>
-                    </div>
+                let disposisiHTML = `
+                    <p><strong>No. Agenda:</strong> ${surat.noAgenda}</p>
+                    <p><strong>No. Surat:</strong> ${surat.noSurat}</p>
+                    <p><strong>Pengirim:</strong> ${surat.pengirim}</p>
+                    <p><strong>Perihal:</strong> ${surat.perihal}</p>
+                    <hr style="margin: 15px 0;">
                 `;
+
+                if (disposisi && disposisi.catatan) {
+                     disposisiHTML += `
+                        <h4>Hasil Disposisi:</h4>
+                        <p><strong>Catatan:</strong> ${disposisi.catatan}</p>
+                        <p><strong>Diteruskan kepada:</strong> ${disposisi.diteruskan ? disposisi.diteruskan.join(', ') : 'Tidak ada'}</p>
+                        <p><strong>Instruksi:</strong> ${disposisi.instruksi ? disposisi.instruksi.join(', ') : 'Tidak ada'}</p>
+                     `;
+                } else {
+                    disposisiHTML += `<p><em>Belum ada disposisi. Menunggu balasan dari pimpinan.</em></p>`;
+                }
+
+                disposisiContent.innerHTML = disposisiHTML;
                 disposisiModal.style.display = 'flex';
             }
 
             closeDisposisiBtn.addEventListener('click', () => {
                 disposisiModal.style.display = 'none';
-            });
-            
-            printDisposisiBtn.addEventListener('click', () => {
-                window.print();
             });
 
             window.deleteSurat = function(suratId) {
@@ -652,7 +575,6 @@
                 renderSuratTable();
                 closeModal();
                 
-                // --- Send WhatsApp Notification ---
                 const no_wa = suratData.nomorWa;
                 const namaTujuan = suratData.tujuanSurat;
 
@@ -683,6 +605,30 @@
                 showAlert(currentEditId ? 'Data surat berhasil diperbarui!' : 'Surat baru berhasil ditambahkan dan notifikasi sedang disiapkan!');
             });
 
+            function handleUrlUpdate() {
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('action') === 'updateDisposisi') {
+                    const suratId = urlParams.get('id');
+                    const index = suratMasukData.findIndex(s => s.id === suratId);
+
+                    if (index > -1) {
+                        if (!suratMasukData[index].disposisi) {
+                            suratMasukData[index].disposisi = {};
+                        }
+                        suratMasukData[index].disposisi.catatan = urlParams.get('catatan');
+                        suratMasukData[index].disposisi.diteruskan = (urlParams.get('diteruskan') || '').split(',');
+                        suratMasukData[index].disposisi.instruksi = (urlParams.get('instruksi') || '').split(',');
+                        
+                        saveData();
+                        showAlert(`Disposisi untuk surat dengan No. Agenda ${suratMasukData[index].noAgenda} telah diperbarui!`);
+                        
+                        const newUrl = window.location.pathname;
+                        window.history.pushState({}, '', newUrl);
+                        renderSuratTable();
+                    }
+                }
+            }
+
             addSuratBtn.addEventListener('click', () => openModal());
             closeBtn.addEventListener('click', closeModal);
             
@@ -698,6 +644,7 @@
             }
 
             // Initial Load
+            handleUrlUpdate();
             renderSuratTable();
         });
     </script>
