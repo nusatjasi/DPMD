@@ -166,7 +166,7 @@
                 updateUrl.searchParams.set('diteruskan', diteruskan.join('||')); // Gunakan pemisah unik
                 updateUrl.searchParams.set('instruksi', instruksi.join('||')); // Gunakan pemisah unik
 
-                const replyMessage = `*HASIL DISPOSISI* ✅\n\nDisposisi untuk surat No. Agenda ${surat.noAgenda} telah diisi.\n\n*Klik tautan di bawah ini untuk menyimpan hasil disposisi ke dalam sistem:*\n\n${updateUrl.toString()}`;
+                const replyMessage = `*HASIL DISPOSISI* ✅\n\nDisposisi untuk surat No. Agenda ${surat.noAgenda} telah diisi.\n\n*Perihal:* ${surat.perihal}\n\n-------------------\n*HASIL DISPOSISI:*\n*Catatan:* ${catatan || '-'}\n*Diteruskan kepada:* ${diteruskan.join(', ') || '-'}\n*Instruksi:* ${instruksi.join(', ') || '-'}\n-------------------\n\n*Klik tautan di bawah ini untuk menyimpan hasil disposisi ke dalam sistem:*\n\n${updateUrl.toString()}`;
                 
                 const whatsappUrl = `https://api.whatsapp.com/send?phone=${staffWANumber}&text=${encodeURIComponent(replyMessage)}`;
                 
