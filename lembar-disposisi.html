@@ -97,7 +97,6 @@
             }
 
             // --- Daftar Kontak untuk Penerusan ---
-            // Ganti nomor-nomor ini dengan nomor WhatsApp yang sebenarnya
             const daftarKontak = [
                 { nama: 'Staf Pengirim (Admin)', no_wa: '6285349577060' }, 
                 { nama: 'Kepala Dinas', no_wa: '6281200000001' },
@@ -107,7 +106,6 @@
                 { nama: 'Lainnya (Isi Manual)', no_wa: '' },
             ];
             
-            // Populate dropdown penerusan
             daftarKontak.forEach(kontak => {
                 const option = document.createElement('option');
                 option.value = kontak.nama;
@@ -122,7 +120,6 @@
                 nomorWaInput.value = no_wa || '';
             });
 
-            // --- Contact Picker API Logic ---
             if ('contacts' in navigator && 'select' in navigator.contacts) {
                 pickContactBtn.addEventListener('click', async () => {
                     try {
@@ -140,9 +137,8 @@
                     }
                 });
             } else {
-                pickContactBtn.style.display = 'none'; // Hide button if API not supported
+                pickContactBtn.style.display = 'none';
             }
-
 
             const pejabatStruktural = ["Sekretaris", "Kabid. Kelembagaan & PMD", "Kabid. Pemberdayaan Ekonomi & TTG", "Analis Kebijakan", "Pranata Komputer"];
             const instruksiList = ["Tanggapan dan saran", "Untuk diketahui", "Proses lebih lanjut", "Selesaikan", "Koordinasikan", "Wakili / Hadiri", "Agendakan", "Arsip"];
@@ -153,7 +149,6 @@
                 return new Date(dateString).toLocaleDateString('id-ID', options);
             }
 
-            // Render the disposition form
             disposisiContainer.innerHTML = `
                 <div class="print-header">
                     <img src="https://i.ibb.co/zV4syN7/logo-kkt.png" alt="Logo KKT" class="logo" onerror="this.src='https://placehold.co/80x80?text=Logo'">
@@ -233,29 +228,26 @@
                     return;
                 }
 
-                // Cek apakah balasan ditujukan untuk Admin
+                const path = window.location.pathname.replace(/[^/]*$/, 'suratmasuk.html');
+                const updateUrl = new URL(path, window.location.origin);
+                updateUrl.searchParams.set('action', 'updateDisposisi');
+                updateUrl.searchParams.set('id', surat.id);
+                updateUrl.searchParams.set('catatan', catatan);
+                updateUrl.searchParams.set('diteruskan', diteruskan.join('||'));
+                updateUrl.searchParams.set('instruksi', instruksi.join('||'));
+
+                let replyMessage = `*HASIL DISPOSISI* ✅\n\nDisposisi untuk surat No. Agenda ${surat.noAgenda} telah diisi.\n\n*Perihal:* ${surat.perihal}\n\n-------------------\n*HASIL DISPOSISI:*\n*Catatan:* ${catatan || '-'}\n*Diteruskan kepada:* ${diteruskan.join(', ') || '-'}\n*Instruksi:* ${instruksi.join(', ') || '-'}\n-------------------\n\n`;
+                
                 if (namaTujuan === 'Staf Pengirim (Admin)') {
-                    // Membuat URL untuk update di halaman suratmasuk.html
-                    const path = window.location.pathname.replace(/[^/]*$/, 'suratmasuk.html');
-                    const updateUrl = new URL(path, window.location.origin);
-                    updateUrl.searchParams.set('action', 'updateDisposisi');
-                    updateUrl.searchParams.set('id', surat.id);
-                    updateUrl.searchParams.set('catatan', catatan);
-                    updateUrl.searchParams.set('diteruskan', diteruskan.join('||')); // Gunakan pemisah unik
-                    updateUrl.searchParams.set('instruksi', instruksi.join('||')); // Gunakan pemisah unik
-
-                    const replyMessage = `*HASIL DISPOSISI* ✅\n\nDisposisi untuk surat No. Agenda ${surat.noAgenda} telah diisi.\n\n*Perihal:* ${surat.perihal}\n\n-------------------\n*HASIL DISPOSISI:*\n*Catatan:* ${catatan || '-'}\n*Diteruskan kepada:* ${diteruskan.join(', ') || '-'}\n*Instruksi:* ${instruksi.join(', ') || '-'}\n-------------------\n\n*Klik tautan di bawah ini untuk menyimpan hasil disposisi ke dalam sistem:*\n\n${updateUrl.toString()}`;
-                    const whatsappUrl = `https://api.whatsapp.com/send?phone=${nomorTujuan}&text=${encodeURIComponent(replyMessage)}`;
-                    alert('Tautan pembaruan disposisi akan dikirim ke Admin. Klik OK untuk melanjutkan ke WhatsApp.');
-                    window.open(whatsappUrl, '_blank');
-
+                    replyMessage += `*Jika sudah Anda baca, silahkan klik tautan di bawah ini untuk mengarsipkan hasil disposisi ini ke dalam sistem:*\n\n${updateUrl.toString()}`;
                 } else {
-                    // Meneruskan ke pimpinan lain
-                    const replyMessage = `*HASIL DISPOSISI (TINDAK LANJUT)* forwarded\n\nYth. Bapak/Ibu ${namaTujuan},\n\nBerikut hasil disposisi dari pimpinan terkait surat masuk:\n\n*Dari:* ${surat.pengirim}\n*No. Surat:* ${surat.noSurat}\n*Perihal:* ${surat.perihal}\n\n-------------------\n*HASIL DISPOSISI:*\n*Catatan:* ${catatan || '-'}\n*Diteruskan kepada:* ${diteruskan.join(', ') || '-'}\n*Instruksi:* ${instruksi.join(', ') || '-'}\n-------------------\n\n${surat.linkSurat ? `*Lihat Lampiran Surat Asli:*\n${surat.linkSurat}\n\n` : ''}Mohon untuk ditindaklanjuti. Terima kasih.`;
-                    const whatsappUrl = `https://api.whatsapp.com/send?phone=${nomorTujuan}&text=${encodeURIComponent(replyMessage)}`;
-                    alert('Disposisi akan diteruskan. Klik OK untuk melanjutkan ke WhatsApp.');
-                    window.open(whatsappUrl, '_blank');
+                    replyMessage = `*HASIL DISPOSISI (TINDAK LANJUT)* forwarded\n\nYth. Bapak/Ibu ${namaTujuan},\n\nBerikut hasil disposisi dari pimpinan terkait surat masuk:\n\n*Dari:* ${surat.pengirim}\n*No. Surat:* ${surat.noSurat}\n*Perihal:* ${surat.perihal}\n\n-------------------\n*HASIL DISPOSISI:*\n*Catatan:* ${catatan || '-'}\n*Diteruskan kepada:* ${diteruskan.join(', ') || '-'}\n*Instruksi:* ${instruksi.join(', ') || '-'}\n-------------------\n\n${surat.linkSurat ? `*Lihat Lampiran Surat Asli:*\n${surat.linkSurat}\n\n` : ''}Mohon untuk ditindaklanjuti. Terima kasih.`;
                 }
+                
+                const whatsappUrl = `https://api.whatsapp.com/send?phone=${nomorTujuan}&text=${encodeURIComponent(replyMessage)}`;
+                
+                alert('Pesan WhatsApp akan dibuat. Klik OK untuk melanjutkan.');
+                window.open(whatsappUrl, '_blank');
             });
         });
     </script>
