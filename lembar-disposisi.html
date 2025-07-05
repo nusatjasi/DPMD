@@ -59,7 +59,7 @@
             <!-- Konten disposisi akan dimuat di sini oleh JavaScript -->
         </div>
         <div class="form-group">
-            <label for="teruskanKe">Kirim Balasan Disposisi Ke:</label>
+            <label for="teruskanKe">Teruskan Hasil Disposisi Ke:</label>
             <select id="teruskanKe">
                 <option value="" disabled selected>Pilih Tujuan</option>
             </select>
@@ -67,11 +67,11 @@
         <div class="form-group">
             <label for="nomorWaTujuan">Nomor WhatsApp Tujuan:</label>
             <div class="input-group">
-                <input type="tel" id="nomorWaTujuan" placeholder="Pilih tujuan untuk mengisi nomor otomatis atau isi manual">
+                <input type="tel" id="nomorWaTujuan" placeholder="Pilih tujuan atau isi manual">
                 <button class="btn" id="pickContactBtn" title="Pilih dari Kontak"><i class="fas fa-address-book"></i></button>
             </div>
         </div>
-        <button class="btn" id="saveDisposisiBtn" style="margin-top: 20px; float: right; background-color: var(--success-color);"><i class="fab fa-whatsapp"></i> Kirim Balasan & Selesai</button>
+        <button class="btn" id="saveDisposisiBtn" style="margin-top: 20px; float: right; background-color: var(--success-color);"><i class="fab fa-whatsapp"></i> Kirim Disposisi Lanjutan</button>
     </div>
 
     <script>
@@ -96,12 +96,14 @@
                 return;
             }
 
+            // --- Daftar Kontak untuk Penerusan ---
             const daftarKontak = [
                 { nama: 'Staf Pengirim (Admin)', no_wa: '6285349577060' }, 
-                { nama: 'Kepala Dinas', no_wa: '' },
-                { nama: 'Sekretaris', no_wa: '' },
-                { nama: 'Kabid. Kelembagaan & PMD', no_wa: '' },
-                { nama: 'Kabid. Pemberdayaan Ekonomi & TTG', no_wa: '' },
+                { nama: 'Kepala Dinas', no_wa: '6281200000001' },
+                { nama: 'Sekretaris', no_wa: '6281200000002' },
+                { nama: 'Kabid. Kelembagaan & PMD', no_wa: '6281200000003' },
+                { nama: 'Kabid. Pemberdayaan Ekonomi & TTG', no_wa: '6281200000004' },
+                { nama: 'Lainnya (Isi Manual)', no_wa: '' },
             ];
             
             daftarKontak.forEach(kontak => {
@@ -128,6 +130,7 @@
                                 phoneNumber = '62' + phoneNumber.substring(1);
                             }
                             nomorWaInput.value = phoneNumber;
+                            teruskanSelect.value = "Lainnya (Isi Manual)";
                         }
                     } catch (ex) {
                         console.error('Gagal mengambil kontak.', ex);
@@ -230,14 +233,20 @@
                 updateUrl.searchParams.set('action', 'updateDisposisi');
                 updateUrl.searchParams.set('id', surat.id);
                 updateUrl.searchParams.set('catatan', catatan);
-                updateUrl.searchParams.set('diteruskan', diteruskan.join(','));
-                updateUrl.searchParams.set('instruksi', instruksi.join(','));
+                updateUrl.searchParams.set('diteruskan', diteruskan.join('||'));
+                updateUrl.searchParams.set('instruksi', instruksi.join('||'));
+
+                let replyMessage;
                 
-                const replyMessage = `*HASIL DISPOSISI* ✅\n\nDisposisi untuk surat No. Agenda ${surat.noAgenda} telah diisi.\n\n*Perihal:* ${surat.perihal}\n\n*Klik tautan di bawah ini untuk menyimpan hasil disposisi ke dalam sistem:*\n${updateUrl.toString()}`;
+                if (namaTujuan === 'Staf Pengirim (Admin)') {
+                    replyMessage = `*HASIL DISPOSISI* ✅\n\nDisposisi untuk surat No. Agenda ${surat.noAgenda} telah diisi.\n\n*Perihal:* ${surat.perihal}\n\n-------------------\n*HASIL DISPOSISI:*\n*Catatan:* ${catatan || '-'}\n*Diteruskan kepada:* ${diteruskan.join(', ') || '-'}\n*Instruksi:* ${instruksi.join(', ') || '-'}\n-------------------\n\n*Jika sudah Anda baca, silahkan klik tautan di bawah ini untuk mengarsipkan hasil disposisi ini ke dalam sistem:*\n\n${updateUrl.toString()}`;
+                } else {
+                    replyMessage = `*HASIL DISPOSISI (TINDAK LANJUT)* forwarded\n\nYth. Bapak/Ibu ${namaTujuan},\n\nBerikut hasil disposisi dari pimpinan terkait surat masuk:\n\n*Dari:* ${surat.pengirim}\n*No. Surat:* ${surat.noSurat}\n*Perihal:* ${surat.perihal}\n\n-------------------\n*HASIL DISPOSISI:*\n*Catatan:* ${catatan || '-'}\n*Diteruskan kepada:* ${diteruskan.join(', ') || '-'}\n*Instruksi:* ${instruksi.join(', ') || '-'}\n-------------------\n\n${surat.linkSurat ? `*Lihat Lampiran Surat Asli:*\n${surat.linkSurat}\n\n` : ''}Mohon untuk ditindaklanjuti. Terima kasih.`;
+                }
                 
                 const whatsappUrl = `https://api.whatsapp.com/send?phone=${nomorTujuan}&text=${encodeURIComponent(replyMessage)}`;
                 
-                alert('Tautan pembaruan disposisi akan dikirim. Klik OK untuk melanjutkan ke WhatsApp.');
+                alert('Pesan WhatsApp akan dibuat. Klik OK untuk melanjutkan.');
                 window.open(whatsappUrl, '_blank');
             });
         });
