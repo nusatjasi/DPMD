@@ -27,6 +27,9 @@
         .form-group { display: flex; flex-direction: column; margin-top: 20px; }
         .form-group label { margin-bottom: 5px; font-weight: 500; color: var(--text-secondary); }
         .form-group select, .form-group input { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem; }
+        .input-group { display: flex; gap: 10px; }
+        .input-group input { flex-grow: 1; }
+        .input-group .btn { padding: 10px 15px; }
         .print-header { display: flex; align-items: center; justify-content: center; margin-bottom: 15px; border-bottom: 3px solid black; padding-bottom: 10px; gap: 20px; }
         .print-header .logo { width: 70px; height: auto; }
         .print-header .header-text { text-align: center; font-family: 'Times New Roman', Times, serif; flex-grow: 1; }
@@ -63,7 +66,10 @@
         </div>
         <div class="form-group">
             <label for="nomorWaTujuan">Nomor WhatsApp Tujuan:</label>
-            <input type="tel" id="nomorWaTujuan" placeholder="Pilih tujuan untuk mengisi nomor otomatis atau isi manual">
+            <div class="input-group">
+                <input type="tel" id="nomorWaTujuan" placeholder="Pilih tujuan atau isi manual">
+                <button class="btn" id="pickContactBtn" title="Pilih dari Kontak"><i class="fas fa-address-book"></i></button>
+            </div>
         </div>
         <button class="btn" id="saveDisposisiBtn" style="margin-top: 20px; float: right; background-color: var(--success-color);"><i class="fab fa-whatsapp"></i> Kirim Disposisi Lanjutan</button>
     </div>
@@ -74,6 +80,7 @@
             const saveBtn = document.getElementById('saveDisposisiBtn');
             const teruskanSelect = document.getElementById('teruskanKe');
             const nomorWaInput = document.getElementById('nomorWaTujuan');
+            const pickContactBtn = document.getElementById('pickContactBtn');
             const urlParams = new URLSearchParams(window.location.search);
 
             const surat = {};
@@ -90,7 +97,6 @@
             }
 
             // --- Daftar Kontak untuk Penerusan ---
-            // Ganti nomor-nomor ini dengan nomor WhatsApp yang sebenarnya
             const daftarKontak = [
                 { nama: 'Staf Pengirim (Admin)', no_wa: '6285349577060' }, 
                 { nama: 'Kepala Dinas', no_wa: '' },
@@ -111,17 +117,30 @@
             teruskanSelect.addEventListener('change', function() {
                 const selectedOption = this.options[this.selectedIndex];
                 const no_wa = selectedOption.dataset.no_wa;
-                if (no_wa) {
-                    nomorWaInput.value = no_wa;
-                    nomorWaInput.readOnly = true;
-                    nomorWaInput.style.backgroundColor = '#e9ecef';
-                } else {
-                    nomorWaInput.value = '';
-                    nomorWaInput.readOnly = false;
-                    nomorWaInput.style.backgroundColor = '#ffffff';
-                    nomorWaInput.placeholder = 'Masukkan nomor WA manual';
-                }
+                nomorWaInput.value = no_wa || '';
             });
+
+            // --- Contact Picker API Logic ---
+            if ('contacts' in navigator && 'select' in navigator.contacts) {
+                pickContactBtn.addEventListener('click', async () => {
+                    try {
+                        const contacts = await navigator.contacts.select(['tel'], {multiple: false});
+                        if (contacts.length > 0) {
+                            let phoneNumber = contacts[0].tel[0];
+                            // Format number to international standard (e.g., 628...)
+                            phoneNumber = phoneNumber.replace(/[^0-9]/g, ''); // Remove non-numeric
+                            if (phoneNumber.startsWith('08')) {
+                                phoneNumber = '62' + phoneNumber.substring(1);
+                            }
+                            nomorWaInput.value = phoneNumber;
+                        }
+                    } catch (ex) {
+                        console.error('Gagal mengambil kontak.', ex);
+                    }
+                });
+            } else {
+                pickContactBtn.style.display = 'none'; // Hide button if API not supported
+            }
 
 
             const pejabatStruktural = ["Sekretaris", "Kabid. Kelembagaan & PMD", "Kabid. Pemberdayaan Ekonomi & TTG", "Analis Kebijakan", "Pranata Komputer"];
