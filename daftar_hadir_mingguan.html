@@ -466,6 +466,23 @@
             }
         }
     </style>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script>
+  // PASTE KODE KONFIGURASI ANDA DARI FIREBASE DI SINI
+  const firebaseConfig = {
+    apiKey: "...", // Kunci unik Anda
+    authDomain: "...", // Kunci unik Anda
+    databaseURL: "...", // Kunci unik Anda
+    projectId: "...", // Kunci unik Anda
+    storageBucket: "...", // Kunci unik Anda
+    messagingSenderId: "...", // Kunci unik Anda
+    appId: "..." // Kunci unik Anda
+  };
+
+  // Inisialisasi Firebase
+  firebase.initializeApp(firebaseConfig);
+</script>
 </head>
 <body>
     <div class="sidebar" id="sidebar">
