@@ -166,21 +166,6 @@
             }
         }
     </style>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBqAyS1M6UzvQk-VyQ5KkBCQlDiRcoKU1A",
-  authDomain: "dpmd-tanimbar-app.firebaseapp.com",
-  projectId: "dpmd-tanimbar-app",
-  storageBucket: "dpmd-tanimbar-app.firebasestorage.app",
-  messagingSenderId: "138533762216",
-  appId: "1:138533762216:web:43378473418bcb5a043e9d",
-  measurementId: "G-Y4XV98TYPN"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-</script>
 </head>
 <body>
     <!-- Sidebar -->
@@ -466,17 +451,33 @@
                         <td>${surat.pengirim}</td>
                         <td>${surat.perihal.substring(0, 25)}${surat.perihal.length > 25 ? '...' : ''}</td>
                         <td>
-                            ${hasDisposisi ? '<span class="status status-disposisi">Sudah Didisposisi</span>' : '<span class="status status-proses">Terkirim</span>'}
+                            ${hasDisposisi ? '<span class="status status-disposisi">Sudah Didisposisi</span>' : '<span class="status status-proses">Menunggu Disposisi</span>'}
                         </td>
                         <td style="text-align: center;">
-                            ${hasDisposisi ? `<button class="btn" onclick="openDisposisiModal('${surat.id}')" title="Lihat Hasil Disposisi" style="padding: 8px 12px; font-size: 0.9rem; background-color: #6f42c1; gap: 0;"><i class="fas fa-eye"></i></button>` : '-'}
+                            ${hasDisposisi ? 
+                                `<button class="btn" onclick="openDisposisiModal('${surat.id}')" title="Lihat Hasil Disposisi" style="padding: 8px 12px; font-size: 0.9rem; background-color: #6f42c1; gap: 0;">
+                                    <i class="fas fa-eye"></i>
+                                </button>` 
+                                : 
+                                '<span style="color: var(--text-secondary);">-</span>'
+                            }
                         </td>
                         <td style="text-align: center;">
-                            ${surat.linkSurat ? `<a href="${surat.linkSurat}" target="_blank" class="btn" title="Lihat File" style="padding: 8px 12px; font-size: 0.9rem; background-color: #28a745; gap: 0;"><i class="fas fa-eye"></i></a>` : 'Tidak ada'}
+                            ${surat.linkSurat ? 
+                                `<a href="${surat.linkSurat}" target="_blank" class="btn" title="Lihat File" style="padding: 8px 12px; font-size: 0.9rem; background-color: #28a745; gap: 0;">
+                                    <i class="fas fa-eye"></i>
+                                </a>` 
+                                : 
+                                'Tidak ada'
+                            }
                         </td>
                         <td style="display: flex; flex-wrap: wrap; gap: 5px;">
-                            <button class="btn" onclick="openModal('${surat.id}')" title="Edit" style="padding: 8px 12px; font-size: 0.9rem; background-color: #ffc107; gap: 0;"><i class="fas fa-edit"></i></button>
-                            <button class="btn btn-danger" onclick="deleteSurat('${surat.id}')" title="Hapus" style="padding: 8px 12px; font-size: 0.9rem; gap: 0;"><i class="fas fa-trash"></i></button>
+                            <button class="btn" onclick="openModal('${surat.id}')" title="Edit" style="padding: 8px 12px; font-size: 0.9rem; background-color: #ffc107; gap: 0;">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger" onclick="deleteSurat('${surat.id}')" title="Hapus" style="padding: 8px 12px; font-size: 0.9rem; gap: 0;">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </td>
                     `;
                 });
@@ -687,11 +688,11 @@
                 const namaTujuan = suratData.tujuanSurat;
 
                 if (no_wa && namaTujuan) {
-                    // --- PERBAIKAN UTAMA: Membuat tautan disposisi dengan returnUrl dan ID ---
+                    // Buat tautan disposisi yang bisa diakses tanpa login
                     const path = window.location.pathname.replace(/[^/]*$/, 'lembar-disposisi.html');
                     const baseUrl = window.location.origin + path;
                     
-                    // Membuat tautan LENGKAP dengan semua parameter surat
+                    // Membuat tautan dengan semua parameter surat
                     const params = new URLSearchParams();
                     for (const key in suratData) {
                         if (key !== 'disposisi' && suratData[key]) { 
@@ -699,14 +700,10 @@
                         }
                     }
                     
-                    // PASTIKAN ID ADA - ini yang paling penting
+                    // Pastikan ID selalu ada
                     if (!params.has('id')) {
                         params.append('id', suratData.id);
                     }
-                    
-                    // Tambahkan parameter returnUrl untuk kembali ke admin
-                    const returnUrl = encodeURIComponent(window.location.href);
-                    params.append('returnUrl', returnUrl);
                     
                     const disposisiUrl = `${baseUrl}?${params.toString()}`;
 
@@ -720,7 +717,7 @@
                     
                     const whatsappUrl = `https://api.whatsapp.com/send?phone=${no_wa}&text=${encodeURIComponent(message)}`;
                     
-                    // Buka WhatsApp dan lembar disposisi secara otomatis
+                    // Buka WhatsApp
                     window.open(whatsappUrl, '_blank');
                     
                     // Tampilkan alert konfirmasi untuk membuka lembar disposisi
@@ -734,37 +731,61 @@
 
             function handleUrlUpdate() {
                 const urlParams = new URLSearchParams(window.location.search);
+                
+                // Handle update disposisi dari URL parameters
                 if (urlParams.get('action') === 'updateDisposisi') {
                     const suratId = urlParams.get('id');
                     const index = suratMasukData.findIndex(s => s.id === suratId);
 
                     if (index > -1) {
-                        if (!suratMasukData[index].disposisi) {
-                            suratMasukData[index].disposisi = {};
-                        }
-                        suratMasukData[index].disposisi.catatan = urlParams.get('catatan');
-                        suratMasukData[index].disposisi.diteruskan = (urlParams.get('diteruskan') || '').split(',').filter(Boolean);
-                        suratMasukData[index].disposisi.instruksi = (urlParams.get('instruksi') || '').split(',').filter(Boolean);
+                        // Update data disposisi
+                        suratMasukData[index].disposisi = {
+                            catatan: urlParams.get('catatan') || '',
+                            diteruskan: (urlParams.get('diteruskan') || '').split(',').filter(Boolean),
+                            instruksi: (urlParams.get('instruksi') || '').split(',').filter(Boolean),
+                            timestamp: new Date().toISOString()
+                        };
                         
                         saveData();
                         
                         // Tampilkan alert sukses
-                        showAlert(`Disposisi untuk surat dengan No. Agenda ${suratMasukData[index].noAgenda} telah diperbarui!`, 'success');
+                        showAlert(`✅ Disposisi untuk surat No. Agenda ${suratMasukData[index].noAgenda} telah diperbarui!`, 'success');
                         
-                        // Hapus parameter URL dan refresh
+                        // Hapus parameter URL
                         const cleanUrl = window.location.pathname;
                         window.history.replaceState({}, '', cleanUrl);
                         
                         renderSuratTable();
-                        
-                        // Jika ada returnUrl, redirect ke sana
-                        const returnUrl = urlParams.get('returnUrl');
-                        if (returnUrl) {
-                            setTimeout(() => {
-                                window.location.href = decodeURIComponent(returnUrl);
-                            }, 1500);
-                        }
                     }
+                }
+            }
+
+            // Fungsi untuk sync disposisi dari localStorage
+            function syncDisposisiFromLocalStorage() {
+                let updated = false;
+                
+                suratMasukData.forEach(surat => {
+                    const storageKey = `disposisi_${surat.id}`;
+                    const storedDisposisi = localStorage.getItem(storageKey);
+                    
+                    if (storedDisposisi && !surat.disposisi) {
+                        const disposisiData = JSON.parse(storedDisposisi);
+                        surat.disposisi = {
+                            catatan: disposisiData.catatan,
+                            diteruskan: disposisiData.diteruskan,
+                            instruksi: disposisiData.instruksi,
+                            timestamp: disposisiData.timestamp
+                        };
+                        updated = true;
+                        
+                        // Hapus dari localStorage setelah disinkronisasi
+                        localStorage.removeItem(storageKey);
+                    }
+                });
+                
+                if (updated) {
+                    saveData();
+                    renderSuratTable();
                 }
             }
 
@@ -784,6 +805,7 @@
 
             // Initial Load
             handleUrlUpdate();
+            syncDisposisiFromLocalStorage();
             renderSuratTable();
         });
     </script>
