@@ -2,10 +2,7 @@
 <html lang="id">
 <head>
     <script>
-    // Skrip ini berjalan segera untuk melindungi halaman sebelum dirender.
     if (sessionStorage.getItem('isLoggedIn') !== 'true') {
-        // Jika belum login, paksa alihkan ke halaman login.
-        // Ganti 'login.html' jika nama file login Anda berbeda.
         window.location.replace('login.html');
     }
 </script>
@@ -13,10 +10,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Surat Masuk - DPMD Kab. Kepulauan Tanimbar</title>
     <script>
-        // Cek status login saat halaman dimuat
         window.addEventListener('DOMContentLoaded', function() {
           if (sessionStorage.getItem('isLoggedIn') !== 'true') {
-            // window.location.href = './login.html';
           }
         });
     </script>
@@ -174,7 +169,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <script>
-  // PASTE KODE KONFIGURASI ANDA DARI FIREBASE DI SINI
   const firebaseConfig = {
     apiKey: "AIzaSyBqAyS1M6UzvQk-VyQ5KkBCQlDiRcoKU1A",
   authDomain: "dpmd-tanimbar-app.firebaseapp.com",
@@ -185,7 +179,6 @@
   measurementId: "G-Y4XV98TYPN"
   };
 
-  // Inisialisasi Firebase
   firebase.initializeApp(firebaseConfig);
 </script>
 </head>
@@ -694,7 +687,7 @@
                 const namaTujuan = suratData.tujuanSurat;
 
                 if (no_wa && namaTujuan) {
-                    // --- PERBAIKAN UTAMA DI SINI ---
+                    // --- PERBAIKAN UTAMA: Membuat tautan disposisi dengan returnUrl dan ID ---
                     const path = window.location.pathname.replace(/[^/]*$/, 'lembar-disposisi.html');
                     const baseUrl = window.location.origin + path;
                     
@@ -705,21 +698,38 @@
                            params.append(key, suratData[key]);
                         }
                     }
+                    
+                    // PASTIKAN ID ADA - ini yang paling penting
+                    if (!params.has('id')) {
+                        params.append('id', suratData.id);
+                    }
+                    
+                    // Tambahkan parameter returnUrl untuk kembali ke admin
+                    const returnUrl = encodeURIComponent(window.location.href);
+                    params.append('returnUrl', returnUrl);
+                    
                     const disposisiUrl = `${baseUrl}?${params.toString()}`;
 
                     let message = `*SURAT MASUK BARU* 📨\n\nYth. Bapak/Ibu ${namaTujuan},\n\nAda surat masuk baru yang memerlukan perhatian Bapak/Ibu.\n\n*Dari:* ${suratData.pengirim}\n*No. Surat:* ${suratData.noSurat}\n*Perihal:* ${suratData.perihal}\n\n`;
-
+                    
                     if (suratData.linkSurat) {
                         message += `*Lihat Lampiran Surat:*\n${suratData.linkSurat}\n\n`;
                     }
 
-                    message += `Mohon untuk memberikan disposisi melalui tautan di bawah ini:\n${disposisiUrl}\n\nTerima kasih.`;
+                    message += `Mohon untuk memberikan disposisi melalui tautan di bawah ini:\n${disposisiUrl}\n\n*KLIK LINK DI ATAS UNTUK LANGSUNG MENGISI DISPOSISI*\n\nTerima kasih.`;
                     
                     const whatsappUrl = `https://api.whatsapp.com/send?phone=${no_wa}&text=${encodeURIComponent(message)}`;
+                    
+                    // Buka WhatsApp dan lembar disposisi secara otomatis
                     window.open(whatsappUrl, '_blank');
+                    
+                    // Tampilkan alert konfirmasi untuk membuka lembar disposisi
+                    showAlert('Notifikasi telah dikirim ke WhatsApp. Klik OK untuk membuka lembar disposisi secara otomatis.', 'success', () => {
+                        window.open(disposisiUrl, '_blank');
+                    });
+                } else {
+                    showAlert(currentEditId ? 'Data surat berhasil diperbarui!' : 'Surat baru berhasil ditambahkan!');
                 }
-
-                showAlert(currentEditId ? 'Data surat berhasil diperbarui!' : 'Surat baru berhasil ditambahkan dan notifikasi sedang disiapkan!');
             });
 
             function handleUrlUpdate() {
@@ -737,11 +747,23 @@
                         suratMasukData[index].disposisi.instruksi = (urlParams.get('instruksi') || '').split(',').filter(Boolean);
                         
                         saveData();
-                        showAlert(`Disposisi untuk surat dengan No. Agenda ${suratMasukData[index].noAgenda} telah diperbarui!`);
                         
-                        const newUrl = window.location.pathname;
-                        window.history.pushState({}, '', newUrl);
+                        // Tampilkan alert sukses
+                        showAlert(`Disposisi untuk surat dengan No. Agenda ${suratMasukData[index].noAgenda} telah diperbarui!`, 'success');
+                        
+                        // Hapus parameter URL dan refresh
+                        const cleanUrl = window.location.pathname;
+                        window.history.replaceState({}, '', cleanUrl);
+                        
                         renderSuratTable();
+                        
+                        // Jika ada returnUrl, redirect ke sana
+                        const returnUrl = urlParams.get('returnUrl');
+                        if (returnUrl) {
+                            setTimeout(() => {
+                                window.location.href = decodeURIComponent(returnUrl);
+                            }, 1500);
+                        }
                     }
                 }
             }
