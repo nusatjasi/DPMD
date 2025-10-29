@@ -1,14 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <script>
-    // Skrip ini berjalan segera untuk melindungi halaman sebelum dirender.
-    if (sessionStorage.getItem('isLoggedIn') !== 'true') {
-        // Jika belum login, paksa alihkan ke halaman login.
-        // Ganti 'login.html' jika nama file login Anda berbeda.
-        window.location.replace('login.html');
-    }
-</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lembar Disposisi - DPMD Kab. Kepulauan Tanimbar</title>
@@ -75,44 +67,37 @@
         .error-box { padding: 20px; border: 2px solid var(--danger-color); background: #fbebeb; color: #58151c; border-radius: 8px; }
         .error-box h2 { color: #58151c; }
         .error-box pre { white-space: pre-wrap; word-wrap: break-word; background: #f5f5f5; padding: 10px; border-radius: 4px; margin-top: 10px; }
+        
+        /* Print Styles */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; }
+            .disposisi-container { box-shadow: none; border: none; max-width: 100%; }
+        }
     </style>
-        <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-<script>
-  // PASTE KODE KONFIGURASI ANDA DARI FIREBASE DI SINI
-  const firebaseConfig = {
-    apiKey: "AIzaSyBqAyS1M6UzvQk-VyQ5KkBCQlDiRcoKU1A",
-  authDomain: "dpmd-tanimbar-app.firebaseapp.com",
-  projectId: "dpmd-tanimbar-app",
-  storageBucket: "dpmd-tanimbar-app.firebasestorage.app",
-  messagingSenderId: "138533762216",
-  appId: "1:138533762216:web:43378473418bcb5a043e9d",
-  measurementId: "G-Y4XV98TYPN"
-  };
-
-  // Inisialisasi Firebase
-  firebase.initializeApp(firebaseConfig);
-</script>
 </head>
 <body>
     <div class="disposisi-container">
         <div id="disposisiContent">
             <!-- Konten akan dimuat di sini oleh JavaScript -->
         </div>
-        <div class="form-group" id="tujuan-group" style="display: none;">
+        <div class="form-group" id="tujuan-group">
             <label for="teruskanKe">Kirim Balasan Disposisi Ke:</label>
             <select id="teruskanKe">
                 <option value="" disabled selected>Pilih Tujuan</option>
             </select>
         </div>
-        <div class="form-group" id="nomor-wa-group" style="display: none;">
+        <div class="form-group" id="nomor-wa-group">
             <label for="nomorWaTujuan">Nomor WhatsApp Tujuan:</label>
             <div class="input-group">
                 <input type="tel" id="nomorWaTujuan" placeholder="Pilih tujuan untuk mengisi nomor otomatis atau isi manual">
                 <button class="btn" id="pickContactBtn" title="Pilih dari Kontak"><i class="fas fa-address-book"></i></button>
             </div>
         </div>
-        <button class="btn" id="saveDisposisiBtn" style="display: none; margin-top: 20px; float: right; background-color: var(--success-color);"><i class="fab fa-whatsapp"></i> Kirim Balasan & Selesai</button>
+        <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+            <button class="btn no-print" onclick="window.print()"><i class="fas fa-print"></i> Cetak</button>
+            <button class="btn" id="saveDisposisiBtn" style="background-color: var(--success-color);"><i class="fab fa-whatsapp"></i> Kirim Balasan & Selesai</button>
+        </div>
     </div>
 
     <!-- Custom Notification Alert -->
@@ -120,17 +105,20 @@
         <div class="custom-alert-box">
             <div class="custom-alert-icon"><i class="fas"></i></div>
             <p class="custom-alert-message"></p>
-            <div class="custom-alert-buttons"><button id="alertConfirmBtn" class="btn"></button></div>
+            <div class="custom-alert-buttons">
+                <button id="alertConfirmBtn" class="btn"></button>
+            </div>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // --- Variabel untuk returnUrl ---
+            let returnUrl = '';
+
             // Ambil elemen utama dari DOM
             const disposisiContent = document.getElementById('disposisiContent');
             const saveBtn = document.getElementById('saveDisposisiBtn');
-            const tujuanGroup = document.getElementById('tujuan-group');
-            const nomorWaGroup = document.getElementById('nomor-wa-group');
             const teruskanSelect = document.getElementById('teruskanKe');
             const nomorWaInput = document.getElementById('nomorWaTujuan');
             const pickContactBtn = document.getElementById('pickContactBtn');
@@ -168,7 +156,11 @@
             const urlParams = new URLSearchParams(window.location.search);
             const surat = {};
             for (let [key, value] of urlParams.entries()) {
-                surat[key] = decodeURIComponent(value);
+                if (key === 'returnUrl') {
+                    returnUrl = decodeURIComponent(value);
+                } else {
+                    surat[key] = decodeURIComponent(value);
+                }
             }
 
             // Validasi parameter URL
@@ -183,16 +175,11 @@
                 return; // Hentikan eksekusi jika ID tidak ada
             }
 
-            // Jika validasi berhasil, lanjutkan memuat halaman
-            // Tampilkan kontrol yang tadinya disembunyikan
-            tujuanGroup.style.display = 'flex';
-            nomorWaGroup.style.display = 'flex';
-            saveBtn.style.display = 'inline-flex';
-
             // Isi dropdown tujuan balasan
             const daftarKontak = [
                 { nama: 'Staf Pengirim (Admin)', no_wa: '6285349577060' },
-                { nama: 'Kepala Dinas', no_wa: '' }, { nama: 'Sekretaris', no_wa: '' },
+                { nama: 'Kepala Dinas', no_wa: '' }, 
+                { nama: 'Sekretaris', no_wa: '' },
                 { nama: 'Kabid. Kelembagaan & PMD', no_wa: '' },
                 { nama: 'Kabid. Pemberdayaan Ekonomi & TTG', no_wa: '' },
             ];
@@ -219,9 +206,14 @@
                             if (phoneNumber.startsWith('08')) phoneNumber = '62' + phoneNumber.substring(1);
                             nomorWaInput.value = phoneNumber;
                         }
-                    } catch (ex) { console.error('Gagal mengambil kontak.', ex); }
+                    } catch (ex) { 
+                        console.error('Gagal mengambil kontak.', ex); 
+                        showAlert('Fitur kontak tidak didukung di browser ini. Silakan isi manual.', 'warning');
+                    }
                 });
-            } else { pickContactBtn.style.display = 'none'; }
+            } else { 
+                pickContactBtn.style.display = 'none'; 
+            }
             
             // Definisikan daftar untuk disposisi
             const pejabatStruktural = ["Sekretaris", "Kabid. Kelembagaan & PMD", "Kabid. Pemberdayaan Ekonomi & TTG", "Analis Kebijakan", "Pranata Komputer"];
@@ -250,23 +242,42 @@
                         <tr><td>No. Surat : <span class="value">${surat.noSurat || ''}</span></td><td>No. Agenda : <span class="value">${surat.noAgenda || ''}</span></td></tr>
                         <tr><td>Tgl. Surat : <span class="value">${formatDate(surat.tglSurat)}</span></td>
                             <td>Sifat : 
-                                <div style="display:inline-block; margin-left: 5px;"><label><input type="checkbox" name="disp_sifat" value="Sangat Segera" ${surat.sifatSurat === 'Sangat Segera' ? 'checked' : ''}> Sangat segera</label><label><input type="checkbox" name="disp_sifat" value="Penting" ${surat.sifatSurat === 'Penting' ? 'checked' : ''}> Penting</label></div>
-                                <div style="display:inline-block; margin-left: 15px;"><label><input type="checkbox" name="disp_sifat" value="Segera" ${surat.sifatSurat === 'Segera' ? 'checked' : ''}> Segera</label><label><input type="checkbox" name="disp_sifat" value="Rahasia" ${surat.sifatSurat === 'Rahasia' ? 'checked' : ''}> Rahasia</label></div>
-                            </td></tr>
+                                <div style="display:inline-block; margin-left: 5px;">
+                                    <label><input type="checkbox" name="disp_sifat" value="Sangat Segera" ${surat.sifatSurat === 'Sangat Segera' ? 'checked' : ''}> Sangat segera</label>
+                                    <label><input type="checkbox" name="disp_sifat" value="Penting" ${surat.sifatSurat === 'Penting' ? 'checked' : ''}> Penting</label>
+                                </div>
+                                <div style="display:inline-block; margin-left: 15px;">
+                                    <label><input type="checkbox" name="disp_sifat" value="Segera" ${surat.sifatSurat === 'Segera' ? 'checked' : ''}> Segera</label>
+                                    <label><input type="checkbox" name="disp_sifat" value="Rahasia" ${surat.sifatSurat === 'Rahasia' ? 'checked' : ''}> Rahasia</label>
+                                </div>
+                            </td>
+                        </tr>
                         <tr class="hal-value"><td colspan="2">Hal : <span class="value">${surat.perihal || ''}</span></td></tr>
-                        <tr><td class="full-width"><strong>Diteruskan kepada Sdr:</strong><div id="disp_diteruskan" style="padding-left: 10px; margin-top: 5px;">
-                            ${pejabatStruktural.map(j => `<label><input type="checkbox" name="diteruskan" value="${j}"> ${j}</label>`).join('')}
-                            <label><input type="checkbox" id="diteruskan_lainnya_check"> Lainnya</label>
-                            <textarea id="diteruskan_lainnya_text" style="display:none; width: 95%; margin-left: 15px; margin-top: 5px; padding: 5px; border: 1px solid #ccc; border-radius: 4px;" rows="2" placeholder="Isi tujuan lainnya..."></textarea>
-                        </div></td><td class="full-width"><strong>Dengan hormat harap:</strong><div id="disp_instruksi" style="padding-left: 10px; margin-top: 5px;">
-                            ${instruksiList.map(i => `<label><input type="checkbox" name="instruksi" value="${i}"> ${i}</label>`).join('')}
-                        </div></td></tr>
-                        <tr><td colspan="2" class="catatan-value"><strong>Catatan:</strong><textarea id="disp_catatan"></textarea></td></tr>
+                        <tr>
+                            <td class="full-width">
+                                <strong>Diteruskan kepada Sdr:</strong>
+                                <div id="disp_diteruskan" style="padding-left: 10px; margin-top: 5px;">
+                                    ${pejabatStruktural.map(j => `<label><input type="checkbox" name="diteruskan" value="${j}"> ${j}</label>`).join('')}
+                                    <label><input type="checkbox" id="diteruskan_lainnya_check"> Lainnya</label>
+                                    <textarea id="diteruskan_lainnya_text" style="display:none; width: 95%; margin-left: 15px; margin-top: 5px; padding: 5px; border: 1px solid #ccc; border-radius: 4px;" rows="2" placeholder="Isi tujuan lainnya..."></textarea>
+                                </div>
+                            </td>
+                            <td class="full-width">
+                                <strong>Dengan hormat harap:</strong>
+                                <div id="disp_instruksi" style="padding-left: 10px; margin-top: 5px;">
+                                    ${instruksiList.map(i => `<label><input type="checkbox" name="instruksi" value="${i}"> ${i}</label>`).join('')}
+                                </div>
+                            </td>
+                        </tr>
+                        <tr><td colspan="2" class="catatan-value"><strong>Catatan:</strong><textarea id="disp_catatan" placeholder="Isi catatan disposisi..."></textarea></td></tr>
                     </table>
                     <div class="signature-block">
                         <p>Plt. Kepala Dinas Pemberdayaan Masyarakat dan Desa<br>Kabupaten Kepulauan Tanimbar,</p>
-                        <p class="name">REINHARD SAINUKA, S.Sos</p><p>Pembina Tingkat I</p><p>NIP. 19670611 200012 1 004</p>
-                    </div><div style="clear: both;"></div>
+                        <p class="name">REINHARD SAINUKA, S.Sos</p>
+                        <p>Pembina Tingkat I</p>
+                        <p>NIP. 19670611 200012 1 004</p>
+                    </div>
+                    <div style="clear: both;"></div>
                 </div>`;
 
             // Tambahkan event listener untuk elemen yang baru dibuat
@@ -283,24 +294,45 @@
                 const diteruskan = Array.from(document.querySelectorAll('input[name="diteruskan"]:checked')).map(el => el.value);
                 const instruksi = Array.from(document.querySelectorAll('input[name="instruksi"]:checked')).map(el => el.value);
                 const nomorTujuan = nomorWaInput.value;
+                
                 if (diteruskanLainnyaCheck.checked && diteruskanLainnyaText.value.trim() !== '') {
                     diteruskan.push(diteruskanLainnyaText.value.trim());
                 }
+                
                 if (!nomorTujuan) {
                     showAlert('Silakan pilih tujuan dan pastikan nomor WhatsApp terisi.', 'warning');
                     return;
                 }
-                const path = window.location.pathname.replace(/[^/]*$/, 'suratmasuk.html');
-                const updateUrl = new URL(path, window.location.origin);
-                updateUrl.searchParams.set('action', 'updateDisposisi');
-                updateUrl.searchParams.set('id', surat.id);
-                updateUrl.searchParams.set('catatan', catatan);
-                updateUrl.searchParams.set('diteruskan', diteruskan.join(','));
-                updateUrl.searchParams.set('instruksi', instruksi.join(','));
-                const replyMessage = `*HASIL DISPOSISI* ✅\n-----------------------------------\n*No. Agenda:* ${surat.noAgenda||'N/A'}\n*Dari:* ${surat.pengirim||'N/A'}\n*No. Surat:* ${surat.noSurat||'N/A'}\n*Perihal:* ${surat.perihal||'N/A'}\n-----------------------------------\n\n*Disposisi dari Pimpinan:*\n*Catatan:* ${catatan||'-'}\n*Diteruskan kepada:* ${diteruskan.length>0?diteruskan.join(', '):'-'}\n*Instruksi:* ${instruksi.length>0?instruksi.join(', '):'-'}\n\n-----------------------------------\n*Klik tautan di bawah ini untuk menyimpan hasil disposisi ini secara otomatis ke dalam sistem:*\n${updateUrl.toString()}`;
+                
+                // Simpan ke localStorage (untuk sementara, nanti admin akan sync)
+                const disposisiData = {
+                    id: surat.id,
+                    catatan: catatan,
+                    diteruskan: diteruskan,
+                    instruksi: instruksi,
+                    timestamp: new Date().toISOString()
+                };
+                
+                // Simpan ke localStorage dengan key yang unik
+                const storageKey = `disposisi_${surat.id}`;
+                localStorage.setItem(storageKey, JSON.stringify(disposisiData));
+                
+                // Buat URL untuk update di admin
+                const adminUrl = window.location.origin + '/suratmasuk.html';
+                const updateUrl = `${adminUrl}?action=updateDisposisi&id=${surat.id}&catatan=${encodeURIComponent(catatan)}&diteruskan=${encodeURIComponent(diteruskan.join(','))}&instruksi=${encodeURIComponent(instruksi.join(','))}`;
+                
+                const replyMessage = `*HASIL DISPOSISI* ✅\n-----------------------------------\n*No. Agenda:* ${surat.noAgenda||'N/A'}\n*Dari:* ${surat.pengirim||'N/A'}\n*No. Surat:* ${surat.noSurat||'N/A'}\n*Perihal:* ${surat.perihal||'N/A'}\n-----------------------------------\n\n*Disposisi dari Pimpinan:*\n*Catatan:* ${catatan||'-'}\n*Diteruskan kepada:* ${diteruskan.length>0?diteruskan.join(', '):'-'}\n*Instruksi:* ${instruksi.length>0?instruksi.join(', '):'-'}\n\n-----------------------------------\n*Klik tautan di bawah ini untuk menyimpan hasil disposisi ini secara otomatis ke dalam sistem:*\n${updateUrl}`;
+                
                 const whatsappUrl = `https://api.whatsapp.com/send?phone=${nomorTujuan}&text=${encodeURIComponent(replyMessage)}`;
-                showAlert('Tautan pembaruan disposisi akan dikirim. Klik Lanjutkan untuk membuka WhatsApp.', 'success', () => {
+                
+                showAlert('Disposisi berhasil dibuat! Klik Lanjutkan untuk mengirim ke admin.', 'success', () => {
+                    // Buka WhatsApp untuk mengirim ke admin
                     window.open(whatsappUrl, '_blank');
+                    
+                    // Tutup halaman setelah beberapa detik
+                    setTimeout(() => {
+                        window.close(); // Tutup tab/window
+                    }, 3000);
                 });
             });
         });
