@@ -56,6 +56,7 @@
             --icon-color-6: #6f42c1;
             --icon-color-7: #fd7e14;
             --icon-color-8: #20c997;
+            --icon-color-9: #e83e8c; /* Warna baru untuk Daftar Hadir */
         }
 
         * {
@@ -160,6 +161,7 @@
         .icon-color-6 { color: var(--icon-color-6); }
         .icon-color-7 { color: var(--icon-color-7); }
         .icon-color-8 { color: var(--icon-color-8); }
+        .icon-color-9 { color: var(--icon-color-9); }
         
         .dropdown-toggle {
             justify-content: space-between;
@@ -470,7 +472,20 @@
                 <li><a href="#"><i class="fas fa-village menu-icon icon-color-5"></i> <span>Data Desa</span></a></li>
                 <li><a href="#"><i class="fas fa-info-circle menu-icon icon-color-6"></i> <span>Informasi</span></a></li>
                 <li><a href="master.html"><i class="fas fa-database menu-icon icon-color-7"></i> <span>Data Master</span></a></li>
-                <li><a href="daftarhadir.html"><i class="fas fa-clipboard-user menu-icon icon-color-8"></i> <span>Daftar Hadir</span></a></li>
+                
+                <!-- MENU BARU: Absen Online -->
+                <li class="menu-item-has-children">
+                    <a href="#" class="dropdown-toggle">
+                        <div><i class="fas fa-camera-retro menu-icon icon-color-8"></i> <span>Absen Online</span></div>
+                        <i class="fas fa-chevron-down dropdown-icon"></i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="absen_online.html">Ambil Absen</a></li>
+                        <li><a href="rekapan_absen.html">Rekap Absen</a></li>
+                    </ul>
+                </li>
+                
+                <li><a href="daftarhadir.html"><i class="fas fa-clipboard-user menu-icon icon-color-9"></i> <span>Daftar Hadir</span></a></li>
             </ul>
         </div>
         <div class="logout-btn">
