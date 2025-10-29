@@ -113,9 +113,6 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // --- Variabel untuk returnUrl ---
-            let returnUrl = '';
-
             // Ambil elemen utama dari DOM
             const disposisiContent = document.getElementById('disposisiContent');
             const saveBtn = document.getElementById('saveDisposisiBtn');
@@ -156,11 +153,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             const surat = {};
             for (let [key, value] of urlParams.entries()) {
-                if (key === 'returnUrl') {
-                    returnUrl = decodeURIComponent(value);
-                } else {
-                    surat[key] = decodeURIComponent(value);
-                }
+                surat[key] = decodeURIComponent(value);
             }
 
             // Validasi parameter URL
@@ -288,7 +281,7 @@
                 if (!this.checked) diteruskanLainnyaText.value = '';
             });
 
-            // Event listener untuk tombol simpan dan kirim
+            // Event listener untuk tombol simpan dan kirim - PERBAIKAN UTAMA
             saveBtn.addEventListener('click', function() {
                 const catatan = document.getElementById('disp_catatan').value;
                 const diteruskan = Array.from(document.querySelectorAll('input[name="diteruskan"]:checked')).map(el => el.value);
@@ -304,35 +297,38 @@
                     return;
                 }
                 
-                // Simpan ke localStorage (untuk sementara, nanti admin akan sync)
+                // Simpan disposisi ke localStorage dengan key yang unik
                 const disposisiData = {
                     id: surat.id,
+                    noAgenda: surat.noAgenda,
                     catatan: catatan,
                     diteruskan: diteruskan,
                     instruksi: instruksi,
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date().toISOString(),
+                    pengirim: surat.pengirim,
+                    perihal: surat.perihal
                 };
                 
-                // Simpan ke localStorage dengan key yang unik
+                // Simpan ke localStorage
                 const storageKey = `disposisi_${surat.id}`;
                 localStorage.setItem(storageKey, JSON.stringify(disposisiData));
                 
-                // Buat URL untuk update di admin
-                const adminUrl = window.location.origin + '/suratmasuk.html';
-                const updateUrl = `${adminUrl}?action=updateDisposisi&id=${surat.id}&catatan=${encodeURIComponent(catatan)}&diteruskan=${encodeURIComponent(diteruskan.join(','))}&instruksi=${encodeURIComponent(instruksi.join(','))}`;
-                
-                const replyMessage = `*HASIL DISPOSISI* ✅\n-----------------------------------\n*No. Agenda:* ${surat.noAgenda||'N/A'}\n*Dari:* ${surat.pengirim||'N/A'}\n*No. Surat:* ${surat.noSurat||'N/A'}\n*Perihal:* ${surat.perihal||'N/A'}\n-----------------------------------\n\n*Disposisi dari Pimpinan:*\n*Catatan:* ${catatan||'-'}\n*Diteruskan kepada:* ${diteruskan.length>0?diteruskan.join(', '):'-'}\n*Instruksi:* ${instruksi.length>0?instruksi.join(', '):'-'}\n\n-----------------------------------\n*Klik tautan di bawah ini untuk menyimpan hasil disposisi ini secara otomatis ke dalam sistem:*\n${updateUrl}`;
+                const replyMessage = `*HASIL DISPOSISI* ✅\n-----------------------------------\n*No. Agenda:* ${surat.noAgenda||'N/A'}\n*Dari:* ${surat.pengirim||'N/A'}\n*No. Surat:* ${surat.noSurat||'N/A'}\n*Perihal:* ${surat.perihal||'N/A'}\n-----------------------------------\n\n*Disposisi dari Pimpinan:*\n*Catatan:* ${catatan||'-'}\n*Diteruskan kepada:* ${diteruskan.length>0?diteruskan.join(', '):'-'}\n*Instruksi:* ${instruksi.length>0?instruksi.join(', '):'-'}\n\n-----------------------------------\n*Data disposisi telah tersimpan otomatis ke sistem.*\n\n*Admin dapat melihat hasil disposisi ini di halaman Surat Masuk.*`;
                 
                 const whatsappUrl = `https://api.whatsapp.com/send?phone=${nomorTujuan}&text=${encodeURIComponent(replyMessage)}`;
                 
-                showAlert('Disposisi berhasil dibuat! Klik Lanjutkan untuk mengirim ke admin.', 'success', () => {
+                showAlert('Disposisi berhasil disimpan! Klik Lanjutkan untuk mengirim ke admin.', 'success', () => {
                     // Buka WhatsApp untuk mengirim ke admin
                     window.open(whatsappUrl, '_blank');
                     
                     // Tutup halaman setelah beberapa detik
                     setTimeout(() => {
-                        window.close(); // Tutup tab/window
-                    }, 3000);
+                        if (window.history.length > 1) {
+                            window.history.back();
+                        } else {
+                            window.close();
+                        }
+                    }, 2000);
                 });
             });
         });
