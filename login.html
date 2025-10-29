@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Login Aplikasi</title>
@@ -175,6 +174,7 @@
     .form-footer a {
       color: #6a11cb;
       text-decoration: none;
+      cursor: pointer;
     }
 
     .form-footer a:hover {
@@ -191,6 +191,104 @@
       100% { border-color: violet; }
     }
 
+    /* Popup Styles */
+    .popup-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .popup-content {
+      background-color: white;
+      padding: 30px;
+      border-radius: 15px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      animation: popupAppear 0.3s ease-out;
+    }
+
+    @keyframes popupAppear {
+      from {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .popup-content h3 {
+      color: #4a00e0;
+      margin-bottom: 15px;
+      font-size: 1.5rem;
+    }
+
+    .popup-content p {
+      color: #333;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .contact-info {
+      background-color: #f0f0f0;
+      padding: 15px;
+      border-radius: 10px;
+      margin: 15px 0;
+    }
+
+    .contact-info p {
+      margin: 8px 0;
+      color: #555;
+    }
+
+    .whatsapp-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background-color: #25D366;
+      color: white;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background-color 0.3s;
+      margin: 10px 0;
+    }
+
+    .whatsapp-btn:hover {
+      background-color: #1da851;
+    }
+
+    .close-btn {
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-top: 15px;
+      transition: background-color 0.3s;
+    }
+
+    .close-btn:hover {
+      background-color: #5a6268;
+    }
+
     @media (max-width: 768px) {
       body, .container {
         flex-direction: column;
@@ -205,25 +303,30 @@
         padding: 30px;
         text-align: center;
       }
+
+      .popup-content {
+        padding: 20px;
+        margin: 20px;
+      }
     }
   </style>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-<script>
-  // PASTE KODE KONFIGURASI ANDA DARI FIREBASE DI SINI
-  const firebaseConfig = {
-   apiKey: "AIzaSyBqAyS1M6UzvQk-VyQ5KkBCQlDiRcoKU1A",
-  authDomain: "dpmd-tanimbar-app.firebaseapp.com",
-  projectId: "dpmd-tanimbar-app",
-  storageBucket: "dpmd-tanimbar-app.firebasestorage.app",
-  messagingSenderId: "138533762216",
-  appId: "1:138533762216:web:43378473418bcb5a043e9d",
-  measurementId: "G-Y4XV98TYPN"
-  };
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script>
+    // PASTE KODE KONFIGURASI ANDA DARI FIREBASE DI SINI
+    const firebaseConfig = {
+      apiKey: "AIzaSyBqAyS1M6UzvQk-VyQ5KkBCQlDiRcoKU1A",
+      authDomain: "dpmd-tanimbar-app.firebaseapp.com",
+      projectId: "dpmd-tanimbar-app",
+      storageBucket: "dpmd-tanimbar-app.firebasestorage.app",
+      messagingSenderId: "138533762216",
+      appId: "1:138533762216:web:43378473418bcb5a043e9d",
+      measurementId: "G-Y4XV98TYPN"
+    };
 
-  // Inisialisasi Firebase
-  firebase.initializeApp(firebaseConfig);
-</script>
+    // Inisialisasi Firebase
+    firebase.initializeApp(firebaseConfig);
+  </script>
 </head>
 <body>
   <div class="container">
@@ -279,10 +382,35 @@
           </div>
           <button type="submit" class="login-btn">Masuk</button>
           <div class="form-footer">
-            <p>Belum punya akun? <a href="#">Hubungi Admin</a></p>
+            <p>Belum punya akun? <a href="#" id="contactAdminLink">Hubungi Admin</a></p>
           </div>
         </form>
       </div>
+    </div>
+  </div>
+
+  <!-- Popup Hubungi Admin -->
+  <div class="popup-overlay" id="contactPopup">
+    <div class="popup-content">
+      <h3>Hubungi Admin DPMD</h3>
+      <p>Jika Anda mengalami masalah login atau membutuhkan akses ke sistem, segera hubungi admin DPMD:</p>
+      
+      <div class="contact-info">
+        <p><strong>Kontak Person:</strong></p>
+        <p>Bpk. Andi / Ibu Ebi</p>
+        <p><strong>Nomor Telepon:</strong></p>
+        <p>6285349577060</p>
+      </div>
+
+      <p>Klik tombol di bawah ini untuk langsung menghubungi via WhatsApp:</p>
+      
+      <a href="https://api.whatsapp.com/send?phone=6285349577060&text=Halo%20Admin%20DPMD%2C%20saya%20membutuhkan%20akun%20untuk%20login%20ke%20sistem.%20Terima%20kasih." 
+         class="whatsapp-btn" target="_blank">
+        <i class="fab fa-whatsapp"></i> Hubungi via WhatsApp
+      </a>
+      
+      <br>
+      <button class="close-btn" id="closePopup">Tutup</button>
     </div>
   </div>
 
@@ -305,8 +433,36 @@
       }
     }
 
+    // Fungsi untuk menampilkan popup
+    function showContactPopup() {
+      document.getElementById('contactPopup').style.display = 'flex';
+    }
+
+    // Fungsi untuk menyembunyikan popup
+    function hideContactPopup() {
+      document.getElementById('contactPopup').style.display = 'none';
+    }
+
     // Panggil fungsi protectPages saat halaman dimuat
-    window.addEventListener('DOMContentLoaded', protectPages);
+    window.addEventListener('DOMContentLoaded', function() {
+      protectPages();
+      
+      // Event listener untuk link Hubungi Admin
+      document.getElementById('contactAdminLink').addEventListener('click', function(e) {
+        e.preventDefault();
+        showContactPopup();
+      });
+
+      // Event listener untuk tombol tutup popup
+      document.getElementById('closePopup').addEventListener('click', hideContactPopup);
+
+      // Tutup popup ketika klik di luar konten popup
+      document.getElementById('contactPopup').addEventListener('click', function(e) {
+        if (e.target === this) {
+          hideContactPopup();
+        }
+      });
+    });
 
     // Validasi form login
     document.getElementById('loginForm').addEventListener('submit', function(event) {
@@ -319,6 +475,8 @@
         window.location.href = 'index.html';
       } else {
         alert('Username atau password salah. Silakan coba lagi.');
+        // Tampilkan popup hubungi admin setelah login gagal
+        setTimeout(showContactPopup, 500);
       }
     });
 
