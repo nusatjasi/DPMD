@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Absen Online Publik - DPMD</title>
+
+    <!-- Stylesheets and Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase Scripts -->
+    <!-- Removed global Firebase SDK loading as it's now imported as modules -->
+    <!-- <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"></script> -->
+    <!-- <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js"></script> -->
+
+    <style>
+        :root {
+            --bg-primary: #f4f7fc;
+            --bg-secondary: #ffffff;
+            --primary-accent: #e3f2fd;
+            --secondary-accent: #007bff;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border-color: #dee2e6;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-primary); color: var(--text-primary); }
+        .main-content {
+            width: 100%;
+            padding: 15px;
+            max-width: 600px; /* Batas lebar maksimum untuk tampilan desktop */
+            margin: 0 auto; /* Pusatkan konten */
+        }
+        .public-header {
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .public-header img {
+            max-width: 80px;
+            margin-bottom: 15px;
+        }
+        .public-header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .public-header p {
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+        
+        .attendance-card { 
+            width: 100%;
+            background-color: var(--bg-secondary); 
+            padding: 2rem; 
+            border-radius: 12px; 
+            box-shadow: 0 8px 25px var(--shadow-color); 
+            text-align: center; 
+        }
+        .attendance-card .icon { font-size: 4rem; color: var(--secondary-accent); margin-bottom: 1.5rem; }
+        .attendance-card h2 { font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem; }
+        .attendance-card .instruction { color: var(--text-secondary); margin-bottom: 2rem; }
+        .form-field { width: 100%; margin-bottom: 1rem; text-align: left; }
+        .form-field label { font-weight: 500; font-size: 0.9rem; margin-bottom: 8px; display: block; }
+        .form-field input { width: 100%; padding: 12px 15px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 1rem; }
+        #nip-display { background-color: #e9ecef; color: #495057; }
+        .search-container { position: relative; display: flex; gap: 10px; }
+        .search-container input { flex-grow: 1; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px; background: var(--secondary-accent); color: #ffffff; }
+        #attendance-button { width: 100%; padding: 12px; border-radius: 8px; border: none; background-color: #28a745; color: white; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background-color 0.3s; margin-top: 1rem; }
+        #attendance-button:hover { background-color: #218838; }
+        #attendance-button:disabled { background-color: #6c757d; cursor: not-allowed; }
+        #status-display { margin-top: 1.5rem; padding: 1rem; border-radius: 8px; font-weight: 500; min-height: 70px; display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
+        .status-info { background-color: #e3f2fd; color: #007bff; }
+        .status-success { background-color: #d4edda; color: #155724; }
+        .status-error { background-color: #f8d7da; color: #721c24; }
+        .status-active { background-color: #d4edda; color: #155724; } /* Green for active */
+        .status-inactive { background-color: #f8d7da; color: #721c24; } /* Red for inactive */
+
+
+        /* Modal Styles */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1001; }
+        .modal-container { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; }
+        .modal-header h3 { margin: 0; font-size: 1.3rem; }
+        .close-btn { background: none; border: none; font-size: 1.8rem; cursor: pointer; color: var(--text-secondary); line-height: 1; }
+        .modal-body { max-height: 60vh; overflow-y: auto; }
+        .modal-body input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid var(--border-color); border-radius: 8px; }
+        .pegawai-list-item { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f0f0f0; }
+        .pegawai-list-item:last-child { border-bottom: none; }
+        .pegawai-list-item:hover { background-color: var(--primary-accent); }
+        .pegawai-list-item span { display: block; }
+        .pegawai-list-item .nama { font-weight: 600; }
+        .pegawai-list-item .nip { font-size: 0.85rem; color: var(--text-secondary); }
+        .modal-loader { text-align: center; padding: 40px 20px; color: var(--text-secondary); }
+        .modal-loader i { font-size: 2rem; margin-bottom: 15px; display: block; animation: spin 1.5s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* New styles for morning/evening attendance buttons */
+        .attendance-time-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 1rem;
+            justify-content: center;
+        }
+        .attendance-time-buttons button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn-morning { background-color: #007bff; color: white; }
+        .btn-morning:hover { background-color: #0056b3; }
+        .btn-evening { background-color: #6f42c1; color: white; }
+        .btn-evening:hover { background-color: #563d7c; }
+        .attendance-time-buttons button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .session-status-text {
+            font-weight: 600;
+            margin-top: 10px;
+            text-align: center;
+            padding: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-content" id="mainContent">
+        <div class="public-header">
+            <img src="logo copy.png" alt="Logo DPMD">
+            <h1>Absensi Online</h1>
+            <p>Dinas Pemberdayaan Masyarakat dan Desa</p>
+        </div>
+
+        <div class="attendance-card">
+            <div class="icon"><i class="fas fa-map-marker-alt"></i></div>
+            <h2>Absensi Kehadiran</h2>
+            <p class="instruction">Klik "Lihat Nama", pilih nama Anda, lalu klik tombol absen. Pastikan GPS pada perangkat Anda sudah aktif.</p>
+            
+            <div class="form-field">
+                <label for="search-name-input">Nama Pegawai</label>
+                <div class="search-container">
+                    <input type="text" id="search-name-input" placeholder="Pilih nama dari daftar" readonly>
+                    <button class="btn" id="showNameListBtn">Lihat Nama</button>
+                </div>
+            </div>
+
+            <div class="form-field">
+                <label for="nip-display">NIP</label>
+                <input type="text" id="nip-display" placeholder="NIP akan muncul di sini" readonly>
+            </div>
+            
+            <div class="attendance-time-buttons">
+                <button id="morningAttendanceBtn" class="btn-morning" disabled>Absen Pagi</button>
+                <button id="eveningAttendanceBtn" class="btn-evening" disabled>Absen Sore</button>
+            </div>
+            
+            <!-- New elements for displaying session status -->
+            <div id="morningSessionStatus" class="session-status-text">Absen Pagi: Memuat...</div>
+            <div id="eveningSessionStatus" class="session-status-text">Absen Sore: Memuat...</div>
+
+            <div id="status-display" class="status-info">
+                Silakan pilih nama Anda untuk memulai.
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Daftar Nama Pegawai -->
+    <div class="modal-overlay" id="pegawaiModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>Pilih Pegawai</h3>
+                <button class="close-btn" id="closeModalBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="modalSearchInput" placeholder="Ketik untuk mencari nama...">
+                <div id="pegawaiListContainer">
+                    <!-- Daftar nama atau loader akan dimuat di sini -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getDatabase, ref, onValue, set, update, get } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- FIREBASE CONNECTION ---
+            const firebaseConfig = {
+                apiKey: "AIzaSyBqAyS1M6UzvQk-VyQ5KkBCQlDiRcoKU1A",
+                authDomain: "dpmd-tanimbar-app.firebaseapp.com",
+                databaseURL: "https://dpmd-tanimbar-app-default-rtdb.asia-southeast1.firebasedatabase.app",
+                projectId: "dpmd-tanimbar-app",
+                storageBucket: "dpmd-tanimbar-app.appspot.com",
+                messagingSenderId: "138533762216",
+                appId: "1:138533762216:web:43378473418bcb5a043e9d"
+            };
+
+            // Initialize Firebase if not already initialized
+            const app = initializeApp(firebaseConfig);
+            const database = getDatabase(app);
+            const settingsRef = ref(database, 'pengaturan'); // Reference to settings node
+            const pegawaiRef = ref(database, 'pegawai'); // Reference to pegawai data
+            const absensiRef = ref(database, 'absensi'); // Reference to attendance data
+            const attendanceControlRef = ref(database, 'attendance_control'); // New reference for attendance control
+
+            // --- UI Elements ---
+            const searchNameInput = document.getElementById('search-name-input');
+            const nipDisplay = document.getElementById('nip-display');
+            const morningAttendanceBtn = document.getElementById('morningAttendanceBtn');
+            const eveningAttendanceBtn = document.getElementById('eveningAttendanceBtn');
+            const statusDisplay = document.getElementById('status-display');
+            const showNameListBtn = document.getElementById('showNameListBtn');
+            const pegawaiModal = document.getElementById('pegawaiModal');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const modalSearchInput = document.getElementById('modalSearchInput');
+            const pegawaiListContainer = document.getElementById('pegawaiListContainer');
+            const morningSessionStatusDiv = document.getElementById('morningSessionStatus'); // New UI element
+            const eveningSessionStatusDiv = document.getElementById('eveningSessionStatus'); // New UI element
+
+
+            let allPegawai = [];
+            let selectedPegawai = null;
+            let officeLat = null;
+            let officeLon = null;
+            let maxDistanceMeters = null;
+            let isMorningAttendanceActive = false;
+            let isEveningAttendanceActive = false;
+
+            // Function to generate a unique device ID (fallback for MAC address)
+            // This ID is stored in localStorage and is unique per browser/device.
+            function getDeviceId() {
+                let deviceId = localStorage.getItem('dpmd_deviceId'); // Use a more unique key
+                if (!deviceId) {
+                    deviceId = 'device-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+                    localStorage.setItem('dpmd_deviceId', deviceId);
+                }
+                return deviceId;
+            }
+
+            const currentDeviceId = getDeviceId(); // Get the unique device ID for this browser
+
+            // Load settings and pegawai data
+            async function loadInitialData() {
+                updateStatus('Memuat pengaturan dan data pegawai...', 'info');
+                try {
+                    // Load settings
+                    // Using onValue directly in loadInitialData to ensure it's always listening
+                    onValue(settingsRef, (snapshot) => {
+                        if (snapshot.exists()) {
+                            const settings = snapshot.val();
+                            officeLat = settings.officeLat;
+                            officeLon = settings.officeLon;
+                            maxDistanceMeters = settings.jarakMaksimal;
+                        } else {
+                            updateStatus('Pengaturan lokasi kantor belum diatur oleh admin.', 'error');
+                            disableAllAttendanceButtons();
+                        }
+                        // Ensure updateAttendanceButtonStates is called after settings are loaded
+                        updateAttendanceButtonStates(); 
+                    });
+
+                    // Load pegawai data
+                    onValue(pegawaiRef, (snapshot) => {
+                        if (snapshot.exists()) {
+                            const data = snapshot.val();
+                            allPegawai = Object.keys(data).map(key => ({ 
+                                id: key, 
+                                nama: data[key].nama, 
+                                nip: data[key].nip,
+                                // Ensure registeredDeviceId is retrieved, default to null if not set
+                                registeredDeviceId: data[key].registeredDeviceId || null 
+                            }));
+                            updateStatus('Silakan pilih nama Anda untuk memulai.', 'info');
+                        } else {
+                            updateStatus('Tidak ada data pegawai yang bisa dimuat.', 'error');
+                            disableAllAttendanceButtons();
+                        }
+                        // Ensure updateAttendanceButtonStates is called after pegawai data is loaded
+                        updateAttendanceButtonStates();
+                    });
+
+                    // Listen for attendance control status
+                    onValue(attendanceControlRef, (snapshot) => {
+                        const control = snapshot.val() || { morning_active: false, evening_active: false };
+                        isMorningAttendanceActive = control.morning_active;
+                        isEveningAttendanceActive = control.evening_active;
+                        updateAttendanceButtonStates(); // Update button states immediately
+                        updateSessionStatusDisplay(); // Update session status text
+                    });
+
+                } catch (error) {
+                    console.error("Gagal memuat data awal:", error);
+                    updateStatus('Gagal memuat data awal dari database.', 'error');
+                    disableAllAttendanceButtons();
+                }
+            }
+
+            function disableAllAttendanceButtons() {
+                morningAttendanceBtn.disabled = true;
+                eveningAttendanceBtn.disabled = true;
+                morningAttendanceBtn.textContent = 'Absen Pagi (Nonaktif)';
+                eveningAttendanceBtn.textContent = 'Absen Sore (Nonaktif)';
+            }
+
+            function updateAttendanceButtonStates() {
+                // Ensure settings and pegawai data are loaded before updating button states
+                if (officeLat === null || officeLon === null || maxDistanceMeters === null || allPegawai.length === 0) {
+                    disableAllAttendanceButtons();
+                    updateStatus('Memuat pengaturan atau data pegawai...', 'info');
+                    return;
+                }
+
+                if (selectedPegawai) {
+                    const isDeviceAllowed = !selectedPegawai.registeredDeviceId || selectedPegawai.registeredDeviceId === currentDeviceId;
+                    
+                    if (isDeviceAllowed) {
+                        morningAttendanceBtn.disabled = !isMorningAttendanceActive;
+                        eveningAttendanceBtn.disabled = !isEveningAttendanceActive;
+
+                        morningAttendanceBtn.textContent = isMorningAttendanceActive ? 'Absen Pagi' : 'Absen Pagi (Ditutup)';
+                        eveningAttendanceBtn.textContent = isEveningAttendanceActive ? 'Absen Sore' : 'Absen Sore (Ditutup)';
+
+                        if (!isMorningAttendanceActive && !isEveningAttendanceActive) {
+                            updateStatus('Absensi pagi dan sore saat ini ditutup.', 'info');
+                        } else if (!isMorningAttendanceActive && isEveningAttendanceActive) {
+                            updateStatus('Absensi pagi ditutup. Absensi sore aktif.', 'info');
+                        } else if (isMorningAttendanceActive && !isEveningAttendanceActive) {
+                            updateStatus('Absensi pagi aktif. Absensi sore ditutup.', 'info');
+                        } else {
+                            updateStatus(`Pegawai ${selectedPegawai.nama} dipilih. Silakan lakukan absensi.`, 'info');
+                        }
+
+                    } else {
+                        updateStatus('Absen ditolak. Pegawai ini sudah terdaftar pada perangkat lain. Harap hubungi admin untuk mereset perangkat.', 'error');
+                        disableAllAttendanceButtons();
+                    }
+                } else {
+                    disableAllAttendanceButtons();
+                    updateStatus('Silakan pilih nama Anda untuk memulai.', 'info');
+                }
+            }
+
+            // New function to update the session status display text
+            function updateSessionStatusDisplay() {
+                if (isMorningAttendanceActive) {
+                    morningSessionStatusDiv.textContent = 'Absen Pagi: Aktif';
+                    morningSessionStatusDiv.classList.add('status-active');
+                    morningSessionStatusDiv.classList.remove('status-inactive');
+                } else {
+                    morningSessionStatusDiv.textContent = 'Absen Pagi: Nonaktif';
+                    morningSessionStatusDiv.classList.add('status-inactive');
+                    morningSessionStatusDiv.classList.remove('status-active');
+                }
+
+                if (isEveningAttendanceActive) {
+                    eveningSessionStatusDiv.textContent = 'Absen Sore: Aktif';
+                    eveningSessionStatusDiv.classList.add('status-active');
+                    eveningSessionStatusDiv.classList.remove('status-inactive');
+                } else {
+                    eveningSessionStatusDiv.textContent = 'Absen Sore: Nonaktif';
+                    eveningSessionStatusDiv.classList.add('status-inactive');
+                    eveningSessionStatusDiv.classList.remove('status-active');
+                }
+            }
+            
+            // Render pegawai list in modal
+            function renderPegawaiList(filter = '') {
+                pegawaiListContainer.innerHTML = '';
+                const filteredList = allPegawai.filter(p => p.nama.toLowerCase().includes(filter.toLowerCase()));
+
+                if (filteredList.length === 0) {
+                    pegawaiListContainer.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">Nama tidak ditemukan.</p>';
+                    return;
+                }
+
+                filteredList.forEach(pegawai => {
+                    const item = document.createElement('div');
+                    item.classList.add('pegawai-list-item');
+                    item.innerHTML = `<span class="nama">${pegawai.nama}</span><span class="nip">${pegawai.nip}</span>`;
+                    item.addEventListener('click', () => selectPegawai(pegawai));
+                    pegawaiListContainer.appendChild(item);
+                });
+            }
+
+            // Select a pegawai from the list
+            function selectPegawai(pegawai) {
+                selectedPegawai = pegawai;
+                searchNameInput.value = pegawai.nama;
+                nipDisplay.value = pegawai.nip;
+                
+                pegawaiModal.style.display = 'none';
+                updateAttendanceButtonStates(); // Update button states based on selection and global control
+            }
+
+            // Show pegawai list modal
+            showNameListBtn.addEventListener('click', () => {
+                pegawaiModal.style.display = 'flex';
+                pegawaiListContainer.innerHTML = `
+                    <div class="modal-loader">
+                        <i class="fas fa-spinner"></i>
+                        <p>Mohon menunggu...</p>
+                    </div>`;
+                modalSearchInput.value = '';
+                modalSearchInput.style.display = 'none';
+
+                setTimeout(() => {
+                    modalSearchInput.style.display = 'block';
+                    renderPegawaiList();
+                    modalSearchInput.focus();
+                }, 2000);
+            });
+
+            // Close pegawai list modal
+            closeModalBtn.addEventListener('click', () => {
+                pegawaiModal.style.display = 'none';
+            });
+
+            // Filter pegawai list based on search input
+            modalSearchInput.addEventListener('input', () => {
+                renderPegawaiList(modalSearchInput.value);
+            });
+
+            // Handle attendance button click
+            morningAttendanceBtn.addEventListener('click', () => handleAttendance('Pagi'));
+            eveningAttendanceBtn.addEventListener('click', () => handleAttendance('Sore'));
+
+            async function handleAttendance(sessionType) {
+                if (!selectedPegawai) {
+                    updateStatus('Silakan pilih nama pegawai terlebih dahulu.', 'error');
+                    return;
+                }
+
+                if (officeLat === null || officeLon === null || maxDistanceMeters === null) {
+                    updateStatus('Pengaturan lokasi kantor belum lengkap. Hubungi admin.', 'error');
+                    return;
+                }
+
+                // Re-check device ID restriction just before attempting attendance
+                if (selectedPegawai.registeredDeviceId && selectedPegawai.registeredDeviceId !== currentDeviceId) {
+                    updateStatus('Absen ditolak. Pegawai ini sudah terdaftar pada perangkat lain. Harap hubungi admin untuk mereset perangkat.', 'error');
+                    disableAllAttendanceButtons(); // Keep disabled if device is not allowed
+                    return;
+                }
+
+                // Check if the specific attendance session is active
+                if ((sessionType === 'Pagi' && !isMorningAttendanceActive) || (sessionType === 'Sore' && !isEveningAttendanceActive)) {
+                    updateStatus(`Absensi ${sessionType} saat ini tidak aktif.`, 'error');
+                    return;
+                }
+
+                updateStatus(`Mendapatkan lokasi Anda untuk absen ${sessionType}, mohon tunggu...`, 'info');
+                morningAttendanceBtn.disabled = true;
+                eveningAttendanceBtn.disabled = true;
+                morningAttendanceBtn.textContent = 'Memproses...';
+                eveningAttendanceBtn.textContent = 'Memproses...';
+
+                if (!navigator.geolocation) {
+                    updateStatus('Geolocation tidak didukung oleh browser ini.', 'error');
+                    updateAttendanceButtonStates(); // Re-enable based on current state
+                    return;
+                }
+
+                navigator.geolocation.getCurrentPosition(
+                    (position) => positionSuccess(position, selectedPegawai.id, selectedPegawai.nama, sessionType), 
+                    positionError, 
+                    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+                );
+            }
+
+            // Geolocation success callback
+            async function positionSuccess(position, pegawaiId, nama, sessionType) {
+                const userLat = position.coords.latitude;
+                const userLon = position.coords.longitude;
+                const distance = calculateDistance(userLat, userLon, officeLat, officeLon);
+
+                if (distance <= maxDistanceMeters) {
+                    updateStatus(`Lokasi valid! Jarak Anda ${distance.toFixed(0)} meter. Menyimpan data...`, 'info');
+                    await saveAttendanceToFirebase(pegawaiId, nama, userLat, userLon, sessionType);
+                } else {
+                    updateStatus(`Absen Ditolak. Jarak Anda dari kantor adalah ${distance.toFixed(0)} meter (melebihi batas ${maxDistanceMeters}m).`, 'error');
+                    updateAttendanceButtonStates(); // Re-enable based on current state
+                }
+            }
+
+            // Geolocation error callback
+            function positionError(error) {
+                let errorMessage = 'Gagal mendapatkan lokasi. ';
+                switch(error.code) {
+                    case error.PERMISSION_DENIED: errorMessage += "Anda menolak permintaan izin lokasi."; break;
+                    case error.POSITION_UNAVAILABLE: errorMessage += "Informasi lokasi tidak tersedia."; break;
+                    case error.TIMEOUT: errorMessage += "Waktu permintaan lokasi habis."; break;
+                    default: errorMessage += "Terjadi kesalahan yang tidak diketahui."; break;
+                }
+                updateStatus(errorMessage, 'error');
+                updateAttendanceButtonStates(); // Re-enable based on current state
+            }
+
+            // Calculate distance between two coordinates (Haversine formula)
+            function calculateDistance(lat1, lon1, lat2, lon2) {
+                const R = 6371e3; // metres
+                const phi1 = lat1 * Math.PI / 180;
+                const phi2 = lat2 * Math.PI / 180;
+                const deltaPhi = (lat2 - lat1) * Math.PI / 180;
+                const deltaLambda = (lon2 - lon1) * Math.PI / 180;
+
+                const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
+                          Math.cos(phi1) * Math.cos(phi2) *
+                          Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+                return R * c; // in meters
+            }
+
+            // Save attendance data to Firebase
+            async function saveAttendanceToFirebase(pegawaiId, name, lat, lon, sessionType) {
+                const now = new Date();
+                const date = now.toISOString().split('T')[0]; // YYYY-MM-DD
+                const time = now.toTimeString().split(' ')[0]; // HH:MM:SS
+
+                const attendanceData = {
+                    nama: name,
+                    waktu: time,
+                    status: 'Hadir',
+                    keterangan: `Absen Lokasi GPS (${sessionType})`, // Keterangan mencakup sesi
+                    lokasi: { latitude: lat, longitude: lon },
+                    deviceId: currentDeviceId, // Save the device ID with attendance
+                    session: sessionType // New field to store session type (Pagi/Sore)
+                };
+
+                try {
+                    // Check if this employee already has a registered device ID
+                    const pegawaiDataRef = ref(database, `pegawai/${pegawaiId}`);
+                    // Use get() to fetch data once, as onValue would create a persistent listener here
+                    const currentPegawaiDataSnapshot = await get(pegawaiDataRef); 
+                    const currentPegawaiData = currentPegawaiDataSnapshot.val() || {};
+
+                    // If no device ID is registered, or if it matches the current device, proceed
+                    if (!currentPegawaiData.registeredDeviceId || currentPegawaiData.registeredDeviceId === currentDeviceId) {
+                        // Check if already absent for this session today
+                        const existingAttendanceRef = ref(database, `absensi/${date}/${pegawaiId}/${sessionType}`);
+                        const existingAttendanceSnapshot = await get(existingAttendanceRef);
+                        const existingAttendance = existingAttendanceSnapshot.val();
+
+                        if (existingAttendance && existingAttendance.status === 'Hadir') {
+                            updateStatus(`Anda sudah absen ${sessionType} hari ini.`, 'error');
+                            updateAttendanceButtonStates();
+                            return;
+                        }
+
+                        // Save attendance record under the specific session
+                        const attendanceSessionRef = ref(database, `absensi/${date}/${pegawaiId}/${sessionType}`);
+                        await set(attendanceSessionRef, attendanceData);
+
+                        // If no device ID was registered, register the current one
+                        if (!currentPegawaiData.registeredDeviceId) {
+                            await update(pegawaiDataRef, { registeredDeviceId: currentDeviceId });
+                            // Update the local selectedPegawai object as well
+                            selectedPegawai.registeredDeviceId = currentDeviceId;
+                        }
+
+                        updateStatus(`Selamat datang, ${name}! Absen ${sessionType} berhasil terekam pada pukul ${time}.`, 'success');
+                        searchNameInput.value = '';
+                        nipDisplay.value = '';
+                        selectedPegawai = null;
+                        
+                        setTimeout(() => {
+                            updateAttendanceButtonStates(); // Reset button states after successful attendance
+                            updateStatus('Silakan pilih nama Anda untuk memulai.', 'info');
+                        }, 5000);
+                    } else {
+                        // This case should ideally be caught by selectPegawai, but as a double-check
+                        updateStatus('Absen ditolak. Pegawai ini sudah terdaftar pada perangkat lain.', 'error');
+                        disableAllAttendanceButtons();
+                    }
+
+                } catch (error) {
+                    updateStatus('Gagal menyimpan data absensi ke database.', 'error');
+                    console.error("Firebase write error:", error);
+                    updateAttendanceButtonStates(); // Re-enable based on current state
+                }
+            }
+
+            // Update status display message
+            function updateStatus(message, type) {
+                statusDisplay.textContent = message;
+                statusDisplay.className = 'status-display'; // Reset classes
+                statusDisplay.classList.add(type === 'info' ? 'status-info' : type === 'success' ? 'status-success' : 'status-error');
+            }
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', (e) => {
+                if (e.target === pegawaiModal) {
+                    pegawaiModal.style.display = 'none';
+                }
+            });
+
+            // Initial Load of settings and pegawai data
+            loadInitialData();
+        });
+    </script>
+</body>
+</html>

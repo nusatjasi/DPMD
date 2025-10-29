@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rekapan Absen Harian - DPMD</title>
+
+    <script>
+        if (sessionStorage.getItem('isLoggedIn') !== 'true') {
+            const loginUrl = window.location.href.replace(/[^/]*$/, 'login.html');
+            window.location.replace(loginUrl);
+        }
+    </script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyBqAyS1M6UzvQk-VyQ5KkBCQlDiRcoKU1A",
+        authDomain: "dpmd-tanimbar-app.firebaseapp.com",
+        databaseURL: "https://dpmd-tanimbar-app-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "dpmd-tanimbar-app",
+        storageBucket: "dpmd-tanimbar-app.appspot.com",
+        messagingSenderId: "138533762216",
+        appId: "1:138533762216:web:43378473418bcb5a043e9d"
+      };
+
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+    </script>
+    <style>
+        :root {
+            --bg-primary: #f4f7fc;
+            --bg-secondary: #ffffff;
+            --primary-accent: #e3f2fd;
+            --secondary-accent: #007bff;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border-color: #dee2e6;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --hadir: #28a745; --hadir-bg: #e9f7ec;
+            --dl: #17a2b8; --dl-bg: #e8f6f8;
+            --tb: #6f42c1; --tb-bg: #f1eefe;
+            --sakit: #ffc107; --sakit-bg: #fff8e6;
+            --izin: #fd7e14; --izin-bg: #fff2e8;
+            --alpha: #dc3545; --alpha-bg: #fbebee;
+            
+            --icon-color-1: #007bff; --icon-color-2: #28a745; --icon-color-3: #ffc107;
+            --icon-color-4: #dc3545; --icon-color-5: #17a2b8; --icon-color-6: #6f42c1;
+            --icon-color-7: #fd7e14; --icon-color-8: #20c997;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-primary); color: var(--text-primary); display: flex; min-height: 100vh; overflow-x: hidden; visibility: hidden; }
+        .sidebar { width: 260px; background: var(--bg-secondary); border-right: 1px solid var(--border-color); height: 100vh; position: fixed; left: 0; top: 0; transition: transform 0.4s ease, width 0.4s ease; z-index: 1000; box-shadow: 0 0 15px var(--shadow-color); }
+        .sidebar.active { transform: translateX(0); }
+        .sidebar-header { padding: 25px 20px; text-align: center; border-bottom: 1px solid var(--border-color); }
+        .sidebar-header h3 { margin: 0; font-size: 1.5rem; color: var(--secondary-accent); font-weight: 700; }
+        .sidebar-header p { font-size: 0.8rem; opacity: 0.7; margin-top: 5px; color: var(--text-secondary); }
+        .sidebar-menu { padding: 20px 0; height: calc(100% - 150px); overflow-y: auto; }
+        .sidebar-menu ul { list-style: none; }
+        .sidebar-menu a { display: flex; align-items: center; padding: 15px 25px; color: var(--text-secondary); text-decoration: none; transition: all 0.3s ease; font-size: 0.95rem; position: relative; margin: 5px 15px; border-radius: 8px; white-space: nowrap; }
+        .sidebar-menu a:hover, .sidebar-menu a.active { background-color: var(--secondary-accent); color: #ffffff; transform: translateX(5px); box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3); }
+        .sidebar-menu a:hover i, .sidebar-menu a.active i { color: #ffffff !important; }
+        .sidebar-menu a i.menu-icon { margin-right: 15px; width: 20px; text-align: center; font-size: 1.1rem; }
+        .dropdown-toggle { justify-content: space-between; }
+        .dropdown-icon { transition: transform 0.3s ease; }
+        .menu-item-has-children.open > .dropdown-toggle .dropdown-icon { transform: rotate(180deg); }
+        .submenu { list-style: none; padding-left: 20px; max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; }
+        /* Removed .menu-item-has-children.open > .submenu { max-height: 500px; } from here to allow JS to control it */
+        .menu-item-has-children.open > .submenu { max-height: 500px; } /* Re-added for JS to toggle it */
+        .logout-btn { position: absolute; bottom: 20px; left: 15px; right: 15px; }
+        .logout-btn a { display: flex; justify-content: center; align-items: center; background-color: var(--primary-accent); color: var(--secondary-accent); text-align: center; padding: 12px; border-radius: 8px; text-decoration: none; }
+        .main-content { margin-left: 260px; width: calc(100% - 260px); padding: 25px; transition: all 0.4s ease; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: var(--bg-secondary); border-radius: 12px; box-shadow: 0 4px 15px var(--shadow-color); margin-bottom: 25px; }
+        .header h2 { font-weight: 600; }
+        .card { background: var(--bg-secondary); border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px var(--shadow-color); margin-bottom: 25px; }
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        table th, table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+        table th { background-color: var(--bg-primary); font-weight: 600; }
+        .filter-container { display: flex; gap: 15px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+        .filter-container label { font-weight: 500; }
+        .filter-container input { padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem; }
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .summary-card { background-color: var(--bg-secondary); border-radius: 10px; padding: 15px; display: flex; align-items: center; gap: 15px; border-left: 5px solid; }
+        .summary-card .icon { font-size: 1.8rem; }
+        .summary-card .info h4 { margin: 0; font-size: 1.5rem; font-weight: 700; }
+        .summary-card .info p { margin: 0; color: var(--text-secondary); font-size: 0.9rem; }
+        .status-select { padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); width: 100%; }
+        .action-buttons { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; align-items: center; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+        .btn-primary { background: var(--secondary-accent); color: white; }
+        .btn-success { background: var(--hadir); color: white; }
+        .btn-warning { background-color: var(--sakit); color: #212529;}
+        .btn-whatsapp { background: #25D366; color: white; }
+        .image-preview-container { margin-top: 15px; display: flex; flex-wrap: wrap; gap: 10px; }
+        .preview-item { position: relative; }
+        .preview-item img { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 2px solid var(--border-color); }
+        .remove-img-btn { position: absolute; top: -5px; right: -5px; background: var(--alpha); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 0.8rem; cursor: pointer; display: flex; justify-content: center; align-items: center; line-height: 1; }
+        .save-info { margin-top: 20px; padding: 15px; background-color: var(--primary-accent); border-radius: 8px; border-left: 5px solid var(--secondary-accent); display: none; }
+        #copy-success-msg { color: var(--hadir); font-weight: 500; display: none; }
+        
+        @media print {
+            body { background: white; color: black; font-family: 'Times New Roman', Times, serif; }
+            .sidebar, .header, .card:not(.printable), .action-buttons, .save-info { display: none; }
+            .main-content { margin: 0; padding: 0; }
+            .card.printable { box-shadow: none; border: none; padding: 0; }
+            .summary-card { border: 1px solid #ccc; }
+            .status-select { -webkit-appearance: none; -moz-appearance: none; appearance: none; border: none; background: transparent; padding: 0; }
+            .status-select::after { content: attr(data-selected-text); }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <!-- Sidebar content, active link changed -->
+        <div class="sidebar-header">
+            <h3>DPMD</h3>
+            <p>Kab. Kepulauan Tanimbar</p>
+        </div>
+        <div class="sidebar-menu">
+            <ul>
+                <li><a href="index.html"><i class="fas fa-home menu-icon" style="color: var(--icon-color-1);"></i> <span>Beranda</span></a></li>
+                <li><a href="datapegawai.html"><i class="fas fa-users menu-icon" style="color: var(--icon-color-2);"></i> <span>Data Pegawai</span></a></li>
+                <li class="menu-item-has-children">
+                    <a href="#" class="dropdown-toggle">
+                        <div><i class="fas fa-envelope-open-text menu-icon" style="color: var(--icon-color-3);"></i> <span>Surat</span></div>
+                        <i class="fas fa-chevron-down dropdown-icon"></i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="suratmasuk.html">Surat Masuk</a></li>
+                        <li><a href="suratkeluar.html">Surat Keluar</a></li>
+                    </ul>
+                </li>
+                <li><a href="bezeting.html"><i class="fas fa-file-invoice menu-icon" style="color: var(--icon-color-4);"></i> <span>Bezeting Pegawai</span></a></li>
+                <li><a href="#"><i class="fas fa-map-marked-alt menu-icon" style="color: var(--icon-color-5);"></i> <span>Data Desa</span></a></li>
+                <!-- Removed 'open' class from here -->
+                <li class="menu-item-has-children">
+                    <a href="#" class="dropdown-toggle">
+                        <div><i class="fas fa-camera-retro menu-icon" style="color: var(--icon-color-6);"></i> <span>Absen Online</span></div>
+                        <i class="fas fa-chevron-down dropdown-icon"></i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="absen_online.html">Ambil Absen</a></li>
+                        <li><a href="rekapan_absen.html" class="active">Rekapan Absen</a></li>
+                    </ul>
+                </li>
+                <li><a href="master.html"><i class="fas fa-database menu-icon" style="color: var(--icon-color-7);"></i> <span>Data Master</span></a></li>
+                <li class="menu-item-has-children">
+                    <a href="#" class="dropdown-toggle">
+                         <div><i class="fas fa-clipboard-user menu-icon" style="color: var(--icon-color-8);"></i> <span>Daftar Hadir</span></div>
+                         <i class="fas fa-chevron-down dropdown-icon"></i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="daftarhadir.html">Apel Senin</a></li>
+                        <li><a href="daftar_hadir_mingguan.html">Apel Setiap Hari</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <div class="logout-btn">
+            <a href="#" id="logoutButton"><i class="fas fa-sign-out-alt"></i> <span>Keluar</span></a>
+        </div>
+    </div>
+    
+    <div class="main-content" id="mainContent">
+        <header class="header">
+            <div class="header-left">
+                <div class="hamburger-menu" id="hamburgerMenu">
+                    <span></span><span></span><span></span>
+                </div>
+                <h2>Rekapan Absensi Harian</h2>
+            </div>
+        </header>
+        
+        <div class="card printable" id="print-area">
+            <div class="filter-container">
+                <label for="dateFilter">Pilih Tanggal:</label>
+                <input type="date" id="dateFilter">
+            </div>
+            
+            <div class="summary-grid" id="summaryContainer">
+                <!-- Summary cards will be generated here -->
+            </div>
+
+            <div class="table-container">
+                <table id="rekapTable">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Nama Pegawai</th>
+                            <th>NIP</th>
+                            <th>Waktu Absen</th>
+                            <th>Keterangan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rekapTableBody">
+                        <tr><td colspan="5" style="text-align:center;">Memuat data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="action-buttons">
+                <input type="file" id="imageUpload" accept="image/*" multiple style="display: none;">
+                <button class="btn btn-primary" id="uploadBtn"><i class="fas fa-camera"></i> Upload Foto</button>
+                <button class="btn btn-success" id="savePdfBtn"><i class="fas fa-file-pdf"></i> Simpan PDF</button>
+                <button class="btn btn-warning" id="copyLinkBtn"><i class="fas fa-link"></i> Salin Link Absen Publik</button>
+                <a class="btn btn-whatsapp" id="sendWaBtn" href="#" target="_blank"><i class="fab fa-whatsapp"></i> Kirim Laporan</a>
+                <span id="copy-success-msg">Link berhasil disalin!</span>
+            </div>
+            <div class="image-preview-container" id="imagePreviewContainer">
+                <!-- Image previews will be shown here -->
+            </div>
+            <div class="save-info" id="saveInfo">
+                <p><strong>Petunjuk Penyimpanan:</strong></p>
+                <ol>
+                    <li>File PDF telah dibuat dan diunduh oleh browser Anda.</li>
+                    <li>Silakan buka folder Google Drive Anda dengan mengklik tautan di bawah ini.</li>
+                    <li>Unggah (upload) file PDF yang baru saja Anda simpan ke folder tersebut.</li>
+                </ol>
+                <p>
+                    <a href="https://drive.google.com/drive/folders/1C_0NeWAS7zlRWn4YzRowWvNFGoUTT7du?usp=sharing" target="_blank" class="btn btn-primary" style="background-color: #4285F4; margin-top:10px;">
+                        <i class="fab fa-google-drive"></i> Buka Folder Google Drive
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        if (sessionStorage.getItem('isLoggedIn') === 'true') {
+            document.body.style.visibility = 'visible';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const database = firebase.database();
+            const dateFilter = document.getElementById('dateFilter');
+            const tableBody = document.getElementById('rekapTableBody');
+            const summaryContainer = document.getElementById('summaryContainer');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const imageUpload = document.getElementById('imageUpload');
+            const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+            const sendWaBtn = document.getElementById('sendWaBtn');
+            const savePdfBtn = document.getElementById('savePdfBtn');
+            const saveInfo = document.getElementById('saveInfo');
+            const copyLinkBtn = document.getElementById('copyLinkBtn');
+            const copySuccessMsg = document.getElementById('copy-success-msg');
+
+            const hamburgerMenu = document.getElementById('hamburgerMenu');
+            const sidebar = document.getElementById('sidebar');
+            
+            hamburgerMenu.addEventListener('click', () => {
+                if (window.innerWidth <= 992) { 
+                    sidebar.classList.toggle('active');
+                } else {
+                    sidebar.classList.toggle('collapsed');
+                    document.getElementById('mainContent').classList.toggle('expanded');
+                }
+            });
+
+            document.querySelectorAll('.dropdown-toggle').forEach(item => {
+                item.addEventListener('click', event => {
+                    event.preventDefault();
+                    // Hanya toggle submenu jika sidebar tidak dalam mode collapsed (ikon saja)
+                    if(sidebar.classList.contains('collapsed') && window.innerWidth > 992) {
+                        // Jika sidebar collapsed, mungkin tidak ingin submenu terbuka, atau perlu penanganan khusus
+                        return; 
+                    }
+                    item.parentElement.classList.toggle('open');
+                });
+            });
+
+            const today = new Date().toISOString().split('T')[0];
+            dateFilter.value = today;
+
+            let allPegawai = [];
+            let dailyAttendance = {};
+
+            async function initializePage() {
+                const pegawaiRef = database.ref('pegawai');
+                const snapshot = await pegawaiRef.once('value');
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    allPegawai = Object.keys(data).map(key => ({
+                        id: key,
+                        nama: data[key].nama,
+                        nip: data[key].nip
+                    }));
+                }
+                fetchAndRenderData(dateFilter.value);
+            }
+
+            function fetchAndRenderData(date) {
+                const absensiRef = database.ref(`absensi/${date}`);
+                tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Memuat data untuk tanggal ${date}...</td></tr>`;
+
+                absensiRef.on('value', (snapshot) => {
+                    dailyAttendance = snapshot.val() || {};
+                    renderTable();
+                    updateSummary();
+                });
+            }
+
+            function renderTable() {
+                tableBody.innerHTML = '';
+                if (allPegawai.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Data pegawai belum ada.</td></tr>`;
+                    return;
+                }
+
+                allPegawai.forEach((pegawai, index) => {
+                    const attendanceData = dailyAttendance[pegawai.id];
+                    const status = attendanceData ? attendanceData.status : 'Tanpa Keterangan';
+                    const waktu = attendanceData && attendanceData.status === 'Hadir' ? attendanceData.waktu : '-';
+                    
+                    const row = tableBody.insertRow();
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${pegawai.nama}</td>
+                        <td>${pegawai.nip}</td>
+                        <td>${waktu}</td>
+                        <td>
+                            <select class="status-select" data-pegawai-id="${pegawai.id}" data-selected-text="${status}">
+                                <option value="Hadir" ${status === 'Hadir' ? 'selected' : ''} disabled>Hadir</option>
+                                <option value="Dinas Luar" ${status === 'Dinas Luar' ? 'selected' : ''}>Dinas Luar</option>
+                                <option value="Tugas Belajar" ${status === 'Tugas Belajar' ? 'selected' : ''}>Tugas Belajar</option>
+                                <option value="Sakit" ${status === 'Sakit' ? 'selected' : ''}>Sakit</option>
+                                <option value="Izin" ${status === 'Izin' ? 'selected' : ''}>Izin</option>
+                                <option value="Tanpa Keterangan" ${status === 'Tanpa Keterangan' ? 'selected' : ''}>Tanpa Keterangan</option>
+                            </select>
+                        </td>
+                    `;
+                });
+            }
+
+            function updateSummary() {
+                const summary = {
+                    total: allPegawai.length,
+                    hadir: 0,
+                    dinasLuar: 0,
+                    tugasBelajar: 0,
+                    sakit: 0,
+                    izin: 0,
+                    tanpaKeterangan: 0,
+                };
+
+                allPegawai.forEach(pegawai => {
+                    const attendanceData = dailyAttendance[pegawai.id];
+                    const status = attendanceData ? attendanceData.status : 'Tanpa Keterangan';
+                    switch(status) {
+                        case 'Hadir': summary.hadir++; break;
+                        case 'Dinas Luar': summary.dinasLuar++; break;
+                        case 'Tugas Belajar': summary.tugasBelajar++; break;
+                        case 'Sakit': summary.sakit++; break;
+                        case 'Izin': summary.izin++; break;
+                        default: summary.tanpaKeterangan++; break;
+                    }
+                });
+
+                summaryContainer.innerHTML = `
+                    <div class="summary-card" style="border-color: var(--secondary-accent);"><div class="icon" style="color: var(--secondary-accent);"><i class="fas fa-users"></i></div><div class="info"><h4>${summary.total}</h4><p>Total Pegawai</p></div></div>
+                    <div class="summary-card" style="border-color: var(--hadir);"><div class="icon" style="color: var(--hadir);"><i class="fas fa-user-check"></i></div><div class="info"><h4>${summary.hadir}</h4><p>Hadir</p></div></div>
+                    <div class="summary-card" style="border-color: var(--dl);"><div class="icon" style="color: var(--dl);"><i class="fas fa-plane-departure"></i></div><div class="info"><h4>${summary.dinasLuar}</h4><p>Dinas Luar</p></div></div>
+                    <div class="summary-card" style="border-color: var(--tb);"><div class="icon" style="color: var(--tb);"><i class="fas fa-book-open"></i></div><div class="info"><h4>${summary.tugasBelajar}</h4><p>Tugas Belajar</p></div></div>
+                    <div class="summary-card" style="border-color: var(--sakit);"><div class="icon" style="color: var(--sakit);"><i class="fas fa-head-side-cough"></i></div><div class="info"><h4>${summary.sakit}</h4><p>Sakit</p></div></div>
+                    <div class="summary-card" style="border-color: var(--izin);"><div class="icon" style="color: var(--izin);"><i class="fas fa-envelope-open-text"></i></div><div class="info"><h4>${summary.izin}</h4><p>Izin</p></div></div>
+                    <div class="summary-card" style="border-color: var(--alpha);"><div class="icon" style="color: var(--alpha);"><i class="fas fa-user-times"></i></div><div class="info"><h4>${summary.tanpaKeterangan}</h4><p>Tanpa Ket.</p></div></div>
+                `;
+                
+                updateWhatsAppLink(summary);
+            }
+            
+            function updateWhatsAppLink(summary) {
+                const date = new Date(dateFilter.value);
+                const formattedDate = date.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                
+                const message = `*LAPORAN APEL*
+*DINAS PEMBERDAYAAN MASYARAKAT DAN DESA*
+Tanggal: ${formattedDate}
+
+*Rekapitulasi Kehadiran:*
+✅ Hadir: ${summary.hadir}
+✈️ Dinas Luar: ${summary.dinasLuar}
+📚 Tugas Belajar: ${summary.tugasBelajar}
+🤒 Sakit: ${summary.sakit}
+✉️ Izin: ${summary.izin}
+❌ Tanpa Keterangan: ${summary.tanpaKeterangan}
+----------------------
+👥 *Total Pegawai: ${summary.total}*
+
+Demikian laporan apel hari ini.`;
+
+                const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+                sendWaBtn.href = whatsappUrl;
+            }
+
+            tableBody.addEventListener('change', (e) => {
+                if (e.target.classList.contains('status-select')) {
+                    const select = e.target;
+                    const pegawaiId = select.dataset.pegawaiId;
+                    const newStatus = select.value;
+                    const date = dateFilter.value;
+                    const pegawai = allPegawai.find(p => p.id === pegawaiId);
+
+                    if (!pegawai) return;
+
+                    const updateData = {
+                        nama: pegawai.nama,
+                        status: newStatus,
+                        waktu: newStatus === 'Hadir' ? (dailyAttendance[pegawaiId]?.waktu || '') : '',
+                        keterangan: newStatus === 'Hadir' ? 'Absen Lokasi GPS' : newStatus // Keep 'Absen Lokasi GPS' if status is Hadir
+                    };
+                    
+                    select.dataset.selectedText = newStatus; // Update data attribute for print view
+                    database.ref(`absensi/${date}/${pegawaiId}`).set(updateData);
+                }
+            });
+
+            dateFilter.addEventListener('change', () => {
+                fetchAndRenderData(dateFilter.value);
+            });
+            
+            uploadBtn.addEventListener('click', () => imageUpload.click());
+            imageUpload.addEventListener('change', (event) => {
+                imagePreviewContainer.innerHTML = ''; // Kosongkan pratinjau sebelumnya
+                const files = event.target.files;
+                if (files) {
+                    for (const file of files) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            const previewWrapper = document.createElement('div');
+                            previewWrapper.classList.add('preview-item');
+                            
+                            const img = document.createElement('img');
+                            img.src = e.target.result;
+                            
+                            const removeBtn = document.createElement('button');
+                            removeBtn.classList.add('remove-img-btn');
+                            removeBtn.innerHTML = '&times;';
+                            removeBtn.onclick = () => {
+                                previewWrapper.remove();
+                            };
+
+                            previewWrapper.appendChild(img);
+                            previewWrapper.appendChild(removeBtn);
+                            imagePreviewContainer.appendChild(previewWrapper);
+                        }
+                        reader.readAsDataURL(file);
+                    }
+                }
+            });
+
+            savePdfBtn.addEventListener('click', () => {
+                saveInfo.style.display = 'block';
+                const date = dateFilter.value;
+                document.title = `Rekapan Absen DPMD - ${date}`;
+                window.print();
+                document.title = 'Rekapan Absen Harian - DPMD'; 
+            });
+
+            copyLinkBtn.addEventListener('click', () => {
+                const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
+                const publicLink = `${baseUrl}/absen-publik.html`;
+                
+                const tempInput = document.createElement('input');
+                document.body.appendChild(tempInput);
+                tempInput.value = publicLink;
+                tempInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempInput);
+
+                copySuccessMsg.style.display = 'inline';
+                setTimeout(() => {
+                    copySuccessMsg.style.display = 'none';
+                }, 3000);
+            });
+            
+            document.getElementById('logoutButton').addEventListener('click', (e) => {
+                e.preventDefault();
+                sessionStorage.clear();
+                window.location.replace(window.location.href.replace(/[^/]*$/, 'login.html'));
+            });
+
+            initializePage();
+        });
+    </script>
+</body>
+</html>
